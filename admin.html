@@ -94,6 +94,17 @@
         let allRequests = [];
         let currentFilter = 'all';
 
+        // دالة تعقيم النصوص لمنع XSS
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         document.getElementById('authBtn').addEventListener('click', () => {
             const e = document.getElementById('adminEmail').value; const p = document.getElementById('adminPass').value;
             if(e === "mm@mm.mm" && p === "mm023123") { document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); loadData(); loadAuditLog(); } else { showAlert("❌ خطأ", "بيانات خاطئة!"); }
@@ -131,7 +142,6 @@
             }); 
         }
         
-        // دالة فك الحظر الجديدة
         async function unbanUser(ip) {
             showConfirm("فك الحظر", `هل أنت متأكد من إلغاء حظر IP: ${ip}؟`, async () => {
                 const { error } = await _supabase.from('banned_ips').delete().eq('ip', ip);
@@ -160,11 +170,9 @@
         async function loadData() {
             const list = document.getElementById('requestsList'); list.innerHTML = 'جاري التحميل...';
             
-            // جلب البيانات
             const { data: requests } = await _supabase.from('requests').select('*').order('created_at', {ascending:false});
-            const { data: bannedList } = await _supabase.from('banned_ips').select('*'); // جلب قائمة المحظورين
+            const { data: bannedList } = await _supabase.from('banned_ips').select('*');
 
-            // تحديث قائمة المحظورين في الواجهة
             const bannedContainer = document.getElementById('bannedListContainer');
             if(bannedList && bannedList.length > 0) {
                 bannedContainer.innerHTML = bannedList.map(b => `
@@ -213,6 +221,9 @@
                 
                 const d = new Date(r.created_at).toLocaleString('ar-EG');
                 const profitDisplay = r.profit ? `<span class="profit-badge">+$${r.profit}</span>` : '';
+                
+                // استخدام دالة التعقيم هنا
+                const safeUserData = escapeHtml(r.user_data);
 
                 const div = document.createElement('div');
                 div.style.cssText = "background:#0a0a0a; border:1px solid #333; padding:20px; margin-bottom:15px; border-right: 4px solid " + (r.status==='active'?'gold':'#0f0') + "; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-radius: 8px;";
@@ -221,7 +232,7 @@
                         <span>${d}</span>
                         <span style="color:#fff;">${deviceIcon} ${userIP}</span>
                     </div>
-                    <div style="background:#111; padding:15px; white-space:pre-wrap; color:#fff; margin-bottom:10px; border-radius:4px;">${r.user_data}</div>
+                    <div style="background:#111; padding:15px; white-space:pre-wrap; color:#fff; margin-bottom:10px; border-radius:4px;">${safeUserData}</div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <p>الكود: <span style="color:#0f0; font-weight:bold; font-family:'Fira Code'; font-size:1.2rem; text-shadow:0 0 5px #0f0;">${r.generated_code}</span></p>
                         ${profitDisplay}
