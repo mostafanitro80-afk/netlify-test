@@ -1,51 +1,63 @@
-/* style.css - Comfortable Hacker Theme */
+/* style.css - Comfortable Hacker Theme v2 */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap'); /* للأرقام */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap'); /* خط رقمي للأكواد */
 
 :root {
-    --bg-color: #0d1117;       /* رمادي مزرق داكن جداً (مريح للعين) */
-    --panel-bg: #161b22;       /* لون البطاقات */
-    --accent-green: #2ea043;   /* أخضر هادئ احترافي */
-    --accent-glow: rgba(46, 160, 67, 0.15);
-    --text-main: #c9d1d9;      /* أبيض مائل للرمادي للقراءة */
-    --text-dim: #8b949e;       /* نص فرعي */
-    --border: #30363d;
+    --bg-dark: #0a0b10;         /* لون الخلفية الأساسي (ليس أسود تماماً) */
+    --panel-bg: #111217;        /* لون الكارت */
+    --hacker-green: #238636;    /* أخضر هادئ (مثل GitHub) وليس نيون فاقع */
+    --text-main: #c9d1d9;       /* نص أبيض مائل للرمادي */
+    --text-dim: #8b949e;        /* نص رمادي */
+    --border: #30363d;          /* لون الحدود */
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: 'Cairo', sans-serif;
     margin: 0;
+    padding: 0;
+    font-family: 'Cairo', sans-serif;
+    color: var(--text-main);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     direction: rtl;
-    background-image: radial-gradient(#1f2428 1px, transparent 1px);
-    background-size: 20px 20px; /* نقاط خلفية هادئة */
+    
+    /* === الخلفية الجديدة المريحة === */
+    background-color: var(--bg-dark);
+    /* شبكة رقمية خفيفة جداً */
+    background-image: 
+        linear-gradient(rgba(35, 134, 54, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(35, 134, 54, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px; /* مربعات كبيرة لتقليل التشويش */
+    
+    /* ظل خفيف في الزوايا للتركيز على المنتصف */
+    background: radial-gradient(circle at center, transparent 0%, #000000 100%),
+                linear-gradient(rgba(35, 134, 54, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(35, 134, 54, 0.03) 1px, transparent 1px);
+    background-blend-mode: multiply;
 }
 
 .container {
     background-color: var(--panel-bg);
     padding: 2.5rem;
-    border-radius: 12px;
+    border-radius: 15px;
     border: 1px solid var(--border);
-    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    /* توهج خفيف جداً وغير مؤذي */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
     width: 90%;
-    max-width: 450px;
+    max-width: 460px;
     text-align: center;
     position: relative;
+    backdrop-filter: blur(5px);
 }
 
-/* عنوان بلمسة تقنية */
 h2 {
-    color: var(--accent-green);
+    color: var(--hacker-green);
     margin-bottom: 25px;
     font-weight: 700;
+    letter-spacing: 1px;
     border-bottom: 1px solid var(--border);
     padding-bottom: 15px;
-    letter-spacing: 1px;
 }
 
 label.title {
@@ -53,93 +65,125 @@ label.title {
     color: var(--text-dim); font-size: 0.9rem;
 }
 
-/* الحقول والأزرار */
+/* الحقول بتصميم "Terminal" */
 textarea, input[type="text"] {
     width: 100%;
     background: #0d1117;
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 12px;
-    color: var(--accent-green);
-    font-family: 'Roboto Mono', monospace; /* خط رقمي */
+    color: #e0e0e0;
+    font-family: 'Fira Code', monospace; /* خط الآلة الكاتبة */
     transition: 0.3s;
     outline: none;
+    font-size: 0.9rem;
 }
 
 textarea:focus, input:focus {
-    border-color: var(--accent-green);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+    border-color: var(--hacker-green);
+    background: #0f131a;
 }
+
+/* تصميم مربعات الرفع (Tech Style) */
+.upload-box {
+    border: 1px dashed #444;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+}
+
+.upload-box:hover {
+    border-color: var(--hacker-green);
+    color: var(--hacker-green);
+    background: rgba(35, 134, 54, 0.05);
+}
+
+.upload-box.uploaded {
+    border-style: solid;
+    border-color: var(--hacker-green);
+    color: var(--hacker-green);
+    background: rgba(35, 134, 54, 0.1);
+}
+
+.upload-box .icon { font-size: 1.2rem; }
 
 /* الأزرار */
 button {
-    width: 100%; padding: 14px; margin-top: 20px;
-    background: var(--accent-green);
+    width: 100%; padding: 15px; margin-top: 25px;
+    background: var(--hacker-green);
     color: #fff; border: none; border-radius: 6px;
     font-weight: bold; font-size: 16px; cursor: pointer;
     font-family: 'Cairo', sans-serif;
     transition: 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 button:hover {
-    background: #3fb950;
-    transform: translateY(-1px);
+    background: #2ea043; /* أخضر أفتح قليلاً */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(35, 134, 54, 0.3);
 }
 
-button:disabled { background: #21262d; color: #484f58; cursor: not-allowed; }
+button:disabled { background: #21262d; color: #484f58; transform: none; box-shadow: none; cursor: not-allowed;}
 
 .secondary-btn {
     background: transparent;
     border: 1px solid var(--border);
     color: var(--text-dim);
+    box-shadow: none;
+    margin-top: 15px;
 }
-.secondary-btn:hover { border-color: var(--text-main); color: var(--text-main); background: transparent; }
+.secondary-btn:hover { border-color: var(--text-main); color: var(--text-main); background: transparent; transform: none; }
 
-/* === تصميم صفحة العرض (App) === */
+/* شاشة التطبيق (App Screen) */
 .monitor-screen {
-    background: #000;
+    background: #050505;
     border: 1px solid #333;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 25px;
+    border-radius: 10px;
     margin: 20px 0;
-    font-family: 'Roboto Mono', monospace;
+    font-family: 'Fira Code', monospace;
     position: relative;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8); /* ظل داخلي للشاشة */
 }
 
 .big-number {
-    font-size: 3.5rem;
-    color: var(--accent-green);
+    font-size: 3rem;
+    color: var(--hacker-green);
     font-weight: bold;
-    text-shadow: 0 0 10px rgba(46, 160, 67, 0.4);
-    margin: 10px 0;
+    text-shadow: 0 0 10px rgba(35, 134, 54, 0.3); /* توهج خفيف جداً */
+    margin: 15px 0;
+    letter-spacing: 2px;
 }
 
+/* شريط التقدم */
 .progress-bar {
-    width: 100%;
-    height: 4px;
-    background: #21262d;
-    margin-top: 15px;
-    border-radius: 2px;
-    overflow: hidden;
+    width: 100%; height: 2px; background: #21262d; margin-top: 20px;
 }
-
 .progress-fill {
-    height: 100%;
-    background: var(--accent-green);
-    width: 100%;
-    transition: width 0.1s linear; /* حركة ناعمة */
+    height: 100%; background: var(--hacker-green); width: 100%;
+    box-shadow: 0 0 10px var(--hacker-green);
 }
 
-/* تصميم خانات الرفع */
-.upload-box {
-    border: 1px dashed var(--border);
-    background: #0d1117; padding: 20px;
-    border-radius: 6px; cursor: pointer;
-    color: var(--text-dim); transition: 0.3s;
-    display: flex; flex-direction: column; align-items: center;
+/* الإشعار (Toast) */
+.custom-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: #0d1117; border: 1px solid var(--hacker-green);
+    color: var(--hacker-green); padding: 12px 25px;
+    font-family: 'Fira Code', monospace; z-index: 1000;
+    display: flex; align-items: center; gap: 10px;
+    border-radius: 6px; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    opacity: 0; visibility: hidden; transition: 0.3s;
 }
-.upload-box:hover { border-color: var(--accent-green); color: var(--accent-green); }
-.upload-box.uploaded { border-style: solid; border-color: var(--accent-green); color: var(--accent-green); }
+.custom-toast.show { top: 40px; opacity: 1; visibility: visible; }
 
 .hidden { display: none; }
 input[type="file"] { display: none; }
