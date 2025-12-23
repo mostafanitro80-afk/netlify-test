@@ -7,8 +7,12 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .container { max-width: 1000px; }
-        .profit-badge { background: gold; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
-        .audit-log-box { background: #050505; border: 1px solid #333; height: 150px; overflow-y: scroll; font-family: 'Fira Code'; font-size: 0.8rem; color: #aaa; padding: 10px; margin-top: 20px; }
+        .profit-badge { background: gold; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 0 10px gold; }
+        .audit-log-box { background: #050505; border: 1px solid #333; height: 150px; overflow-y: scroll; font-family: 'Fira Code'; font-size: 0.8rem; color: #aaa; padding: 10px; margin-top: 20px; border-radius: 8px; }
+        .banned-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 42, 42, 0.1); border: 1px solid var(--danger-red); padding: 10px; margin-bottom: 8px; border-radius: 6px; }
+        .banned-ip { font-family: 'Fira Code'; color: #fff; font-weight: bold; }
+        .unban-btn { background: var(--hacker-green); color: #000; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .unban-btn:hover { box-shadow: 0 0 10px var(--hacker-green); }
     </style>
 </head>
 <body>
@@ -59,6 +63,11 @@
             </div>
             <div id="requestsList" style="text-align: right;">جاري الاتصال...</div>
             
+            <div style="margin-top: 40px; border-top: 2px solid #333; padding-top: 20px;">
+                <h3 style="color: var(--danger-red); border-bottom: 1px dashed #333; padding-bottom: 10px;">🚫 إدارة المحظورين (Banned IPs)</h3>
+                <div id="bannedListContainer">جاري تحميل القائمة...</div>
+            </div>
+
             <h3 style="color:#666; font-size:0.9rem; margin-top:20px;">System Audit Log:</h3>
             <div id="auditLog" class="audit-log-box">تحميل السجل...</div>
         </div>
@@ -91,7 +100,6 @@
         });
 
         async function logAction(action) {
-            // إضافة سجل في جدول audit_logs (يجب إنشاؤه في قاعدة البيانات)
             const time = new Date().toISOString();
             const logEntry = `[${time}] ADMIN: ${action}`;
             await _supabase.from('audit_logs').insert([{ log: logEntry }]);
@@ -99,14 +107,11 @@
         }
 
         async function activateCode(code, reqId) {
-            // طلب إدخال المبلغ عند التفعيل
             let profit = prompt("💰 أدخل مبلغ الربح من هذا المستخدم (بالدولار أو العملة المحلية):", "0");
-            if (profit === null) return; // Cancelled
+            if (profit === null) return; 
 
             showConfirm("تفعيل الكود", `تفعيل الكود وتسجيل ربح ${profit}؟`, async () => {
-                // 1. تفعيل الكود
                 const { error } = await _supabase.from('active_codes').update({ is_active: true }).eq('code', code);
-                // 2. تحديث الربح في جدول الطلبات (يجب أن يكون هناك عمود profit في جدول requests)
                 await _supabase.from('requests').update({ profit: profit, status: 'active' }).eq('id', reqId);
                 
                 if(error) showAlert("خطأ", "فشل التفعيل."); 
@@ -118,7 +123,23 @@
             });
         }
 
-        async function banUser(ip) { showConfirm("حظر IP", `حظر ${ip} نهائياً؟`, async () => { const { error } = await _supabase.from('banned_ips').insert([{ ip: ip }]); logAction(`Banned IP ${ip}`); if(error) showAlert("خطأ", "فشل الحظر."); else { showAlert("تم", "تم الحظر 🚫"); loadData(); } }); }
+        async function banUser(ip) { 
+            showConfirm("حظر IP", `حظر ${ip} نهائياً؟`, async () => { 
+                const { error } = await _supabase.from('banned_ips').insert([{ ip: ip }]); 
+                logAction(`Banned IP ${ip}`); 
+                if(error) showAlert("خطأ", "فشل الحظر."); else { showAlert("تم", "تم الحظر 🚫"); loadData(); } 
+            }); 
+        }
+        
+        // دالة فك الحظر الجديدة
+        async function unbanUser(ip) {
+            showConfirm("فك الحظر", `هل أنت متأكد من إلغاء حظر IP: ${ip}؟`, async () => {
+                const { error } = await _supabase.from('banned_ips').delete().eq('ip', ip);
+                logAction(`Unbanned IP ${ip}`);
+                if(error) showAlert("خطأ", "فشل العملية."); else { showAlert("نجاح", "تم فك الحظر ✅"); loadData(); }
+            });
+        }
+
         async function deleteRequest(id) { showConfirm("حذف", "حذف السجل نهائياً؟", async () => { await _supabase.from('requests').delete().eq('id', id); logAction(`Deleted Request ID ${id}`); loadData(); }); }
 
         function setFilter(type, btn) {
@@ -138,19 +159,33 @@
 
         async function loadData() {
             const list = document.getElementById('requestsList'); list.innerHTML = 'جاري التحميل...';
-            // جلب البيانات مع عمود الربح
+            
+            // جلب البيانات
             const { data: requests } = await _supabase.from('requests').select('*').order('created_at', {ascending:false});
-            const { count: bannedCount } = await _supabase.from('banned_ips').select('*', { count: 'exact', head: true });
+            const { data: bannedList } = await _supabase.from('banned_ips').select('*'); // جلب قائمة المحظورين
+
+            // تحديث قائمة المحظورين في الواجهة
+            const bannedContainer = document.getElementById('bannedListContainer');
+            if(bannedList && bannedList.length > 0) {
+                bannedContainer.innerHTML = bannedList.map(b => `
+                    <div class="banned-item">
+                        <span class="banned-ip">${b.ip}</span>
+                        <button class="unban-btn" onclick="unbanUser('${b.ip}')">فك الحظر</button>
+                    </div>
+                `).join('');
+                document.getElementById('bannedCount').innerText = bannedList.length;
+            } else {
+                bannedContainer.innerHTML = '<p style="color:#666;">لا يوجد مستخدمين محظورين.</p>';
+                document.getElementById('bannedCount').innerText = 0;
+            }
 
             if(requests) {
                 allRequests = requests;
-                // حساب إجمالي الأرباح
                 let totalMoney = 0;
                 requests.forEach(r => { if(r.profit) totalMoney += parseFloat(r.profit); });
                 
                 document.getElementById('totalCount').innerText = requests.length;
                 document.getElementById('totalMoney').innerText = "$" + totalMoney;
-                document.getElementById('bannedCount').innerText = bannedCount || 0;
                 
                 renderList();
             } else { list.innerHTML = '<p>لا توجد بيانات.</p>'; }
@@ -163,7 +198,7 @@
 
             const filtered = allRequests.filter(r => {
                 const matchesSearch = r.user_data.toLowerCase().includes(search) || r.generated_code.toLowerCase().includes(search);
-                const isActive = r.status === 'active'; // نفترض وجود عمود status أو يتم استنتاجه
+                const isActive = r.status === 'active';
                 if (currentFilter === 'active' && !isActive) return false;
                 if (currentFilter === 'pending' && isActive) return false;
                 return matchesSearch;
@@ -172,7 +207,6 @@
             filtered.forEach(r => {
                 const ipMatch = r.user_data.match(/IP: ([\d\.]+)/);
                 const userIP = ipMatch ? ipMatch[1] : 'Unknown';
-                // استخراج نوع الجهاز
                 const deviceMatch = r.user_data.match(/Device: (\w+)/);
                 const device = deviceMatch ? deviceMatch[1] : 'Unknown';
                 const deviceIcon = device === 'Mobile' ? '📱' : (device === 'Desktop' ? '💻' : '📟');
@@ -181,20 +215,20 @@
                 const profitDisplay = r.profit ? `<span class="profit-badge">+$${r.profit}</span>` : '';
 
                 const div = document.createElement('div');
-                div.style.cssText = "background:#050505; border:1px solid #333; padding:20px; margin-bottom:15px; border-right: 4px solid " + (r.status==='active'?'gold':'#0f0') + ";";
+                div.style.cssText = "background:#0a0a0a; border:1px solid #333; padding:20px; margin-bottom:15px; border-right: 4px solid " + (r.status==='active'?'gold':'#0f0') + "; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-radius: 8px;";
                 div.innerHTML = `
                     <div style="color:#666; font-size:0.8rem; margin-bottom:10px; font-family:'Fira Code'; display:flex; justify-content:space-between;">
                         <span>${d}</span>
                         <span style="color:#fff;">${deviceIcon} ${userIP}</span>
                     </div>
-                    <div style="background:#111; padding:15px; white-space:pre-wrap; color:#fff; margin-bottom:10px;">${r.user_data}</div>
+                    <div style="background:#111; padding:15px; white-space:pre-wrap; color:#fff; margin-bottom:10px; border-radius:4px;">${r.user_data}</div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <p>الكود: <span style="color:#0f0; font-weight:bold; font-family:'Fira Code'; font-size:1.2rem;">${r.generated_code}</span></p>
+                        <p>الكود: <span style="color:#0f0; font-weight:bold; font-family:'Fira Code'; font-size:1.2rem; text-shadow:0 0 5px #0f0;">${r.generated_code}</span></p>
                         ${profitDisplay}
                     </div>
                     <div style="display:flex; gap:10px; margin-top:15px; flex-wrap:wrap;">
-                        <a href="${r.reg_proof_url}" target="_blank"><img src="${r.reg_proof_url}" height="60" style="border:1px solid #555"></a>
-                        <a href="${r.dep_proof_url}" target="_blank"><img src="${r.dep_proof_url}" height="60" style="border:1px solid #555"></a>
+                        <a href="${r.reg_proof_url}" target="_blank"><img src="${r.reg_proof_url}" height="60" style="border:1px solid #555; border-radius:4px;"></a>
+                        <a href="${r.dep_proof_url}" target="_blank"><img src="${r.dep_proof_url}" height="60" style="border:1px solid #555; border-radius:4px;"></a>
                     </div>
                     <div style="margin-top:15px; border-top:1px dashed #333; padding-top:10px;">
                         <button class="action-btn activate-btn" onclick="activateCode('${r.generated_code}', ${r.id})">✅ تفعيل وتسجيل ربح</button>
