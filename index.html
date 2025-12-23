@@ -3,40 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول الآمن</title>
+    <title>نظام الدخول</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h2>🔐 تسجيل الدخول</h2>
-        <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">أدخل كود التفعيل الخاص بك للوصول</p>
+        <h2>COMMENCE_LOGIN //</h2>
+        <p style="color: var(--hacker-cyan); margin-bottom: 20px; font-size: 0.9rem; text-align: right;">> أدخل شفرة الوصول...</p>
         
-        <input type="text" id="accessCode" placeholder="CODE-XXXXXX" style="text-align: center; letter-spacing: 2px; font-weight: bold;">
+        <input type="text" id="accessCode" placeholder="[INPUT_CODE_HERE]" style="text-align: center; font-weight: bold;">
         
-        <button id="loginBtn">دخول للموقع</button>
-        <button class="secondary-btn" onclick="window.location.href='create.html'">✨ إنشاء كود جديد</button>
+        <button id="loginBtn" data-text="EXECUTE_LOGIN">EXECUTE_LOGIN</button>
+        <button class="secondary-btn" onclick="window.location.href='create.html'" data-text="INITIALIZE_NEW_CODE">INITIALIZE_NEW_CODE</button>
         
         <p style="margin-top: 30px; font-size: 12px; opacity: 0.6;">
-            <a href="admin.html" style="color: #fff; text-decoration: none;">الدخول كمسؤول (Admin)</a>
+            <a href="admin.html" style="color: var(--hacker-cyan); text-decoration: none;">[ADMIN_TERMINAL]</a>
         </p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
-        // نفس الكود الخاص بك الذي يعمل
         const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         
-        if (typeof supabase === 'undefined') { alert('Error loading libraries'); } 
+        if (typeof supabase === 'undefined') { alert('SYSTEM_ERROR: Libs not loaded.'); } 
         else { var _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
 
         async function runLogin() {
             const codeInput = document.getElementById('accessCode').value.trim();
             const btn = document.getElementById('loginBtn');
             
-            if (!codeInput) { alert("الرجاء كتابة الكود"); return; }
+            if (!codeInput) { alert("ERROR: No input detected."); return; }
 
-            btn.innerHTML = "⏳ جاري التحقق...";
+            btn.innerHTML = "VERIFYING...";
             btn.disabled = true;
 
             try {
@@ -50,13 +50,13 @@
                     localStorage.setItem('isLoggedIn', 'true');
                     window.location.href = 'app.html';
                 } else {
-                    alert("❌ الكود غير صحيح");
-                    btn.innerHTML = "دخول للموقع";
+                    alert("ACCESS_DENIED: Invalid code.");
+                    btn.innerHTML = "EXECUTE_LOGIN";
                     btn.disabled = false;
                 }
             } catch (err) {
-                alert("خطأ: " + err.message);
-                btn.innerHTML = "دخول للموقع";
+                alert("SYSTEM_FAILURE: " + err.message);
+                btn.innerHTML = "EXECUTE_LOGIN";
                 btn.disabled = false;
             }
         }
