@@ -8,13 +8,13 @@
 </head>
 <body>
     <div class="container">
-        <h2>نظام الدخول المؤمن</h2>
-        <p style="color: #666; margin-bottom: 20px;">>> أدخل كود التفعيل للمتابعة...</p>
+        <h2>نظام الوصول المؤمن</h2>
+        <p style="color: #888; margin-bottom: 20px;">>> أدخل مفتاح الوصول للمتابعة...</p>
         
-        <input type="text" id="accessCode" placeholder="أدخل الكود هنا" style="text-align: center; font-weight: bold;">
+        <input type="text" id="accessCode" placeholder="XX-XXXX-XX" style="text-align: center; font-weight: bold; font-family:'Fira Code'; letter-spacing:2px;">
         
-        <button id="loginBtn">تنفيذ الدخول</button>
-        <button class="secondary-btn" onclick="window.location.href='create.html'">استخراج كود جديد</button>
+        <button id="loginBtn">بدء الاتصال</button>
+        <button class="secondary-btn" onclick="window.location.href='create.html'">طلب مفتاح جديد</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -27,7 +27,7 @@
             const codeInput = document.getElementById('accessCode').value.trim();
             const btn = document.getElementById('loginBtn');
             
-            if (!codeInput) { alert("الحقل فارغ!"); return; }
+            if (!codeInput) { alert("أدخل الكود أولاً!"); return; }
 
             btn.innerText = "جاري التحقق...";
             btn.disabled = true;
@@ -39,12 +39,12 @@
                     localStorage.setItem('isLoggedIn', 'true');
                     window.location.href = 'app.html';
                 } else {
-                    alert("الكود غير صحيح أو منتهي!");
-                    btn.innerText = "تنفيذ الدخول";
+                    alert("وصول مرفوض: الكود غير صحيح!");
+                    btn.innerText = "بدء الاتصال";
                     btn.disabled = false;
                 }
             } catch (err) {
-                alert("فشل الاتصال");
+                alert("خطأ في الشبكة");
                 btn.disabled = false;
             }
         }
