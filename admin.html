@@ -5,94 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .container { max-width: 800px; width: 95%; }
-    </style>
+    <style>.container { max-width: 900px; }</style>
 </head>
 <body>
     <div class="container">
         <div id="adminLogin">
-            <h2>دخول المشرف</h2>
+            <h2>دخول المشرف (Admin)</h2>
             <input type="email" id="adminEmail" placeholder="البريد الإلكتروني">
             <input type="password" id="adminPass" placeholder="كلمة المرور">
-            <button id="adminLoginBtn">دخول</button>
+            <button id="authBtn">تسجيل الدخول</button>
         </div>
 
         <div id="adminPanel" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>طلبات الأكواد</h2>
-                <button onclick="location.reload()" style="width: auto; padding: 5px 15px;">تحديث</button>
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:15px;">
+                <h2 style="margin:0; border:none;">سجل الطلبات</h2>
+                <button onclick="location.reload()" style="width:auto; margin:0;">تحديث</button>
             </div>
-            <div id="requestsList" style="text-align: right;">
-                <p>جاري التحميل...</p>
-            </div>
+            <div id="requestsList" style="text-align: right;">جاري التحميل...</div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
         const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
-        
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // دالة دخول الأدمن
-        function runAdminLogin() {
-            const email = document.getElementById('adminEmail').value;
-            const pass = document.getElementById('adminPass').value;
-
-            if (email === "mazen@admin.com" && pass === "mazen250999") {
+        document.getElementById('authBtn').addEventListener('click', () => {
+            const e = document.getElementById('adminEmail').value;
+            const p = document.getElementById('adminPass').value;
+            
+            // بيانات الدخول الجديدة
+            if(e === "mm@mm.mm" && p === "mm023123") {
                 document.getElementById('adminLogin').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
-                loadRequests();
+                loadData();
             } else {
-                alert("بيانات خاطئة");
+                alert("بيانات خاطئة!");
             }
-        }
+        });
 
-        // دالة تحميل الطلبات
-        async function loadRequests() {
+        async function loadData() {
             const list = document.getElementById('requestsList');
-            list.innerHTML = 'جاري التحميل...';
-
-            const { data, error } = await _supabase
-                .from('requests')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error(error);
-                list.innerHTML = '<p style="color:red">فشل التحميل، تأكد من إلغاء RLS للجداول</p>';
-                return;
-            }
-
+            const { data } = await _supabase.from('requests').select('*').order('created_at', {ascending:false});
+            
             list.innerHTML = '';
-            if (!data || data.length === 0) {
-                list.innerHTML = '<p>لا توجد طلبات</p>';
-                return;
-            }
+            if(!data || !data.length) { list.innerHTML = '<p>لا توجد طلبات.</p>'; return; }
 
-            data.forEach(req => {
-                const item = document.createElement('div');
-                item.className = 'request-item';
-                const date = new Date(req.created_at).toLocaleString('ar-EG');
-
-                item.innerHTML = `
-                    <p><strong>الوقت:</strong> ${date}</p>
-                    <p><strong>البيانات:</strong> ${req.user_data}</p>
-                    <p><strong>الكود:</strong> <span style="color:#4caf50; font-weight:bold">${req.generated_code}</span></p>
-                    <div style="margin-top:10px;">
-                        <a href="${req.reg_proof_url}" target="_blank"><img src="${req.reg_proof_url}" width="100" style="border:1px solid #555"></a>
-                        <a href="${req.dep_proof_url}" target="_blank"><img src="${req.dep_proof_url}" width="100" style="border:1px solid #555"></a>
+            data.forEach(r => {
+                const d = new Date(r.created_at).toLocaleString('ar-EG');
+                const div = document.createElement('div');
+                div.style.cssText = "background:#000; border:1px solid #333; padding:15px; margin-bottom:15px;";
+                div.innerHTML = `
+                    <div style="color:#666; font-size:0.8rem; margin-bottom:5px;">${d}</div>
+                    <div style="background:#111; padding:10px; border-right:3px solid #0f0; white-space:pre-wrap; color:#fff;">${r.user_data}</div>
+                    <p>الكود: <span style="color:#0f0; font-weight:bold;">${r.generated_code}</span></p>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <a href="${r.reg_proof_url}" target="_blank"><img src="${r.reg_proof_url}" height="80" style="border:1px solid #555"></a>
+                        <a href="${r.dep_proof_url}" target="_blank"><img src="${r.dep_proof_url}" height="80" style="border:1px solid #555"></a>
                     </div>
                 `;
-                list.appendChild(item);
+                list.appendChild(div);
             });
         }
-
-        // تشغيل الزر
-        document.getElementById('adminLoginBtn').addEventListener('click', runAdminLogin);
     </script>
 </body>
 </html>
