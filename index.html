@@ -21,19 +21,13 @@
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // فحص الحظر
         async function checkBan() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
                 const { data: banned } = await _supabase.from('banned_ips').select('*').eq('ip', data.ip);
-                
-                if (banned && banned.length > 0) {
-                    document.body.style.display = 'flex';
-                    document.body.innerHTML = `<h1 style="color:red; font-size:3rem; text-shadow:0 0 10px red;">🚫 BLOCKED</h1>`;
-                } else {
-                    document.body.style.display = 'flex';
-                }
+                if (banned && banned.length > 0) { document.body.innerHTML = `<h1 style="color:red; text-align:center; margin-top:20%;">🚫 BLOCKED</h1>`; document.body.style.display='block'; }
+                else { document.body.style.display = 'flex'; }
             } catch (e) { document.body.style.display = 'flex'; }
         }
         window.onload = checkBan;
@@ -43,13 +37,22 @@
             const btn = document.getElementById('loginBtn');
             if (!codeInput) { alert("أدخل الكود!"); return; }
             btn.innerText = "جاري التحقق..."; btn.disabled = true;
+
             try {
-                const { data } = await _supabase.from('active_codes').select('*').eq('code', codeInput);
-                if (data && data.length > 0) {
+                const { data } = await _supabase.from('active_codes').select('*').eq('code', codeInput).single();
+
+                if (!data) {
+                    alert("❌ الكود غير صحيح!");
+                } else if (data.is_active === true) {
+                    // الكود مفعل
                     localStorage.setItem('isLoggedIn', 'true');
                     window.location.href = 'app.html';
-                } else { alert("كود خاطئ!"); btn.innerText = "بدء الاتصال"; btn.disabled = false; }
-            } catch (err) { alert("خطأ شبكة"); btn.disabled = false; }
+                } else {
+                    // الكود موجود لكنه معلق
+                    alert("⏳ هذا الكود قيد المراجعة.\nيرجى الانتظار حتى يوافق الأدمن.");
+                }
+            } catch (err) { alert("خطأ في الاتصال"); } 
+            finally { btn.innerText = "بدء الاتصال"; btn.disabled = false; }
         }
         document.getElementById('loginBtn').addEventListener('click', runLogin);
     </script>
