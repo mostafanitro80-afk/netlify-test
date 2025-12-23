@@ -1,148 +1,204 @@
-/* style.css - Dark & Professional */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+/* style.css - Professional Hacker Theme */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
 :root {
-    --bg-color: #0f0f13;       /* أسود مائل للكحلي الغامق جداً */
-    --card-bg: #1e1e24;        /* لون الكارت */
-    --primary: #6c5ce7;        /* لون الأزرار البنفسجي */
-    --text-main: #ffffff;
-    --text-muted: #a0a0a0;
-    --border: #333;
+    --bg-color: #050505;         /* أسود حالك */
+    --container-bg: #0a0a0a;     /* خلفية الكونتير */
+    --hacker-green: #0f0;        /* الأخضر النيون الأساسي */
+    --hacker-cyan: #0ff;         /* السيان الثانوي */
+    --text-color: #e0e0e0;
+    --border-glow: 0 0 10px var(--hacker-green), 0 0 20px var(--hacker-green);
 }
 
+* { box-sizing: border-box; }
+
 body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: 'Cairo', sans-serif;
     margin: 0;
+    padding: 0;
+    font-family: 'Fira Code', monospace; /* خط رقمي */
+    background-color: var(--bg-color);
+    color: var(--text-color);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     direction: rtl;
     overflow-x: hidden;
+    /* تأثير شبكة البيانات الخلفية */
+    background-image: 
+        linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    animation: bgScroll 20s linear infinite;
+}
+
+/* حركة الخلفية */
+@keyframes bgScroll {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 600px; }
+}
+
+/* تأثير خطوط الشاشة (CRT Scanlines) */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none; /* لكي لا يعيق الضغط */
+    z-index: 999;
 }
 
 .container {
-    background-color: var(--card-bg);
+    background-color: var(--container-bg);
     padding: 2.5rem;
-    border-radius: 20px;
+    border: 2px solid var(--hacker-green);
+    box-shadow: var(--border-glow);
     width: 90%;
-    max-width: 450px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-    border: 1px solid var(--border);
+    max-width: 480px;
     text-align: center;
     position: relative;
+    /* تأثير وميض عند التحميل (Boot up) */
+    animation: terminalBoot 0.8s ease-out forwards;
 }
 
-h2 { margin-bottom: 20px; font-weight: 700; }
+@keyframes terminalBoot {
+    0% { opacity: 0; transform: scaleY(0.01); }
+    50% { opacity: 1; transform: scaleY(0.01); }
+    100% { transform: scaleY(1); }
+}
+
+h2 {
+    margin-bottom: 25px;
+    font-weight: 700;
+    color: var(--hacker-green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px var(--hacker-green);
+}
+
+h2::before { content: "> "; color: var(--hacker-cyan); }
 
 label.title {
-    display: block;
-    text-align: right;
-    margin: 15px 0 8px;
-    color: var(--text-muted);
-    font-size: 0.9rem;
+    display: block; text-align: right; margin: 15px 0 8px;
+    color: var(--hacker-cyan); font-size: 0.9rem;
 }
 
-/* تحسين خانة الكتابة */
-textarea, input {
-    width: 100%;
-    background: #15151a;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 15px;
-    color: #fff;
-    font-family: inherit;
-    resize: none;
-    box-sizing: border-box;
-    transition: 0.3s;
+/* المدخلات كأنها شاشة طرفية */
+textarea, input[type="text"] {
+    width: 100%; background: #000;
+    border: 1px solid #333; border-left: 3px solid var(--hacker-green);
+    padding: 15px; color: var(--hacker-green);
+    font-family: 'Fira Code', monospace; resize: none;
+    transition: 0.3s; caret-color: var(--hacker-green); /* لون مؤشر الكتابة */
 }
 
-textarea:focus { border-color: var(--primary); outline: none; }
+textarea:focus, input:focus {
+    border-color: var(--hacker-green);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+    outline: none;
+}
 
-/* === تصميم خانات رفع الصور الجديد (واضح وكبير) === */
+/* --- تصميم خانات الرفع (Data Ports) --- */
 .upload-box {
-    border: 2px dashed #444;
-    background: #15151a;
-    border-radius: 12px;
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #888;
-    margin-bottom: 15px;
+    border: 2px dashed #333; background: rgba(0, 255, 0, 0.02);
+    padding: 20px; cursor: pointer; transition: all 0.3s ease;
+    display: flex; flex-direction: column; align-items: center;
+    color: #666; margin-bottom: 15px; position: relative; overflow: hidden;
 }
 
 .upload-box:hover {
-    border-color: var(--primary);
-    background: #1a1a20;
-    color: #fff;
+    border-color: var(--hacker-cyan); color: var(--hacker-cyan);
+    box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.1);
 }
 
-.upload-box span.icon { font-size: 2rem; margin-bottom: 5px; }
-.upload-box.uploaded { border-style: solid; border-color: #2ecc71; color: #2ecc71; }
+.upload-box.uploaded {
+    border-style: solid; border-color: var(--hacker-green); color: var(--hacker-green);
+    background: rgba(0, 255, 0, 0.05);
+}
 
-/* إخفاء زر الملف التقليدي */
+.upload-box.uploaded::after { /* علامة صح رقمية */
+    content: "[DATA_LOCKED]"; position: absolute; top: 5px; right: 5px;
+    font-size: 0.7rem; opacity: 0.7;
+}
+
 input[type="file"] { display: none; }
 
-/* الأزرار */
+/* --- الأزرار مع تأثير GLITCH الاحترافي --- */
 button {
-    width: 100%;
-    padding: 16px;
-    margin-top: 15px;
-    border: none;
-    border-radius: 12px;
-    background: var(--primary);
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s;
-    font-family: inherit;
+    width: 100%; padding: 18px; margin-top: 20px;
+    border: 2px solid var(--hacker-green); background: transparent;
+    color: var(--hacker-green); font-weight: bold; font-size: 18px;
+    cursor: pointer; position: relative; overflow: hidden;
+    font-family: 'Fira Code', monospace; text-transform: uppercase;
+    letter-spacing: 2px; transition: 0.2s;
 }
 
-button:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4); }
-button:disabled { background: #444; cursor: not-allowed; transform: none; }
+button:hover {
+    background: var(--hacker-green); color: #000;
+    box-shadow: 0 0 20px var(--hacker-green);
+    /* تأثير الارتعاش */
+    animation: glitch-skew 0.5s linear infinite alternate-reverse;
+}
+
+/* صناعة تأثير التشويش (Glitch) باستخدام العناصر الزائفة */
+button::before, button::after {
+    content: attr(data-text); /* ينسخ النص الموجود في الزر */
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; opacity: 0.5; display: flex;
+    justify-content: center; align-items: center; visibility: hidden;
+}
+
+button:hover::before {
+    visibility: visible; left: -2px; text-shadow: 2px 0 var(--hacker-cyan);
+    clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    animation: glitch-anim 0.3s linear infinite;
+}
+button:hover::after {
+    visibility: visible; left: 2px; text-shadow: -2px 0 red;
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    animation: glitch-anim 0.3s linear infinite reverse;
+}
+
+@keyframes glitch-anim {
+    0% { clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); }
+    20% { clip-path: polygon(0 30%, 100% 30%, 100% 40%, 0 40%); }
+    40% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); }
+    60% { clip-path: polygon(0 70%, 100% 70%, 100% 80%, 0 80%); }
+    80% { clip-path: polygon(0 50%, 100% 50%, 100% 60%, 0 60%); }
+    100% { clip-path: polygon(0 90%, 100% 90%, 100% 100%, 0 100%); }
+}
+
+button:disabled {
+    border-color: #555; color: #555; background: transparent;
+    cursor: not-allowed; animation: none; box-shadow: none;
+}
 
 .secondary-btn {
-    background: transparent;
-    border: 1px solid var(--primary);
-    color: var(--primary);
+    border-color: var(--hacker-cyan); color: var(--hacker-cyan);
+}
+.secondary-btn:hover {
+    background: var(--hacker-cyan); color: #000;
+    box-shadow: 0 0 20px var(--hacker-cyan);
 }
 
-.secondary-btn:hover { background: rgba(108, 92, 231, 0.1); }
+/* --- الإشعارات (Toast) --- */
+.custom-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: #000; border: 2px solid var(--hacker-green);
+    color: var(--hacker-green); padding: 15px 30px;
+    font-family: 'Fira Code', monospace; z-index: 1000;
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0; visibility: hidden; transition: 0.3s;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+.custom-toast.show { top: 50px; opacity: 1; visibility: visible; }
+.custom-toast.error { border-color: red; color: red; box-shadow: 0 0 15px rgba(255, 0, 0, 0.3); }
+.custom-toast.error span#toastIcon { content: "[ERROR]"; }
 
 .hidden { display: none; }
-
-/* === تصميم الإشعار (بديل الـ Alert) === */
-.custom-toast {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #333;
-    color: #fff;
-    padding: 15px 30px;
-    border-radius: 50px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-.custom-toast.show {
-    top: 50px;
-    opacity: 1;
-    visibility: visible;
-}
-
-.custom-toast.error { border-right: 5px solid #e74c3c; }
-.custom-toast.success { border-right: 5px solid #2ecc71; }
