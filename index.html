@@ -3,40 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الدخول</title>
+    <title>نظام الوصول</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h2>COMMENCE_LOGIN //</h2>
-        <p style="color: var(--hacker-cyan); margin-bottom: 20px; font-size: 0.9rem; text-align: right;">> أدخل شفرة الوصول...</p>
+        <h2>نظام تسجيل الدخول</h2>
+        <p style="color: var(--text-dim); font-size: 0.9rem;">الشبكة مؤمنة. يرجى إدخال مفتاح الوصول.</p>
         
-        <input type="text" id="accessCode" placeholder="[INPUT_CODE_HERE]" style="text-align: center; font-weight: bold;">
+        <input type="text" id="accessCode" placeholder="أدخل الكود هنا..." style="text-align: center; direction: ltr;">
         
-        <button id="loginBtn" data-text="EXECUTE_LOGIN">EXECUTE_LOGIN</button>
-        <button class="secondary-btn" onclick="window.location.href='create.html'" data-text="INITIALIZE_NEW_CODE">INITIALIZE_NEW_CODE</button>
+        <button id="loginBtn">بدء الاتصال</button>
+        <button class="secondary-btn" onclick="window.location.href='create.html'">طلب كود وصول جديد</button>
         
-        <p style="margin-top: 30px; font-size: 12px; opacity: 0.6;">
-            <a href="admin.html" style="color: var(--hacker-cyan); text-decoration: none;">[ADMIN_TERMINAL]</a>
-        </p>
-    </div>
+        </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
         const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
-        
-        if (typeof supabase === 'undefined') { alert('SYSTEM_ERROR: Libs not loaded.'); } 
-        else { var _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function runLogin() {
             const codeInput = document.getElementById('accessCode').value.trim();
             const btn = document.getElementById('loginBtn');
             
-            if (!codeInput) { alert("ERROR: No input detected."); return; }
+            if (!codeInput) { alert("يرجى إدخال الكود"); return; }
 
-            btn.innerHTML = "VERIFYING...";
+            btn.innerText = "جاري التحقق...";
             btn.disabled = true;
 
             try {
@@ -45,18 +39,16 @@
                     .select('*')
                     .eq('code', codeInput);
 
-                if (error) { throw error; } 
-                else if (data && data.length > 0) {
+                if (data && data.length > 0) {
                     localStorage.setItem('isLoggedIn', 'true');
                     window.location.href = 'app.html';
                 } else {
-                    alert("ACCESS_DENIED: Invalid code.");
-                    btn.innerHTML = "EXECUTE_LOGIN";
+                    alert("الكود غير صحيح أو منتهي الصلاحية");
+                    btn.innerText = "بدء الاتصال";
                     btn.disabled = false;
                 }
             } catch (err) {
-                alert("SYSTEM_FAILURE: " + err.message);
-                btn.innerHTML = "EXECUTE_LOGIN";
+                alert("خطأ في الاتصال");
                 btn.disabled = false;
             }
         }
