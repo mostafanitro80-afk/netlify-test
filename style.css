@@ -1,94 +1,195 @@
-/* style.css */
+/* style.css - تصميم احترافي داكن */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+
 :root {
-    --bg-color: #121212;
-    --card-bg: #1e1e1e;
-    --text-color: #e0e0e0;
-    --accent-color: #007bff; /* أزرق احترافي */
-    --input-bg: #2c2c2c;
-    --border-color: #333;
+    --primary-color: #6c5ce7;
+    --primary-hover: #5649c0;
+    --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+    --text-color: #ffffff;
+    --text-muted: #a0a0a0;
+}
+
+* {
+    box-sizing: border-box;
+    outline: none;
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg-gradient);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite; /* خلفية متحركة */
+    color: var(--text-color);
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
     direction: rtl;
 }
 
+/* حركة الخلفية */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 .container {
-    background-color: var(--card-bg);
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px); /* تأثير الزجاج */
+    -webkit-backdrop-filter: blur(10px);
+    border: var(--glass-border);
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     width: 90%;
-    max-width: 400px;
+    max-width: 450px;
     text-align: center;
+    animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-h2 { margin-bottom: 20px; color: #fff; }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-input, textarea, button {
+h2 {
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* تحسين المدخلات */
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+textarea {
     width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background-color: var(--input-bg);
+    padding: 15px;
+    margin-bottom: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
     color: #fff;
-    box-sizing: border-box;
     font-size: 16px;
-}
-
-textarea { resize: vertical; height: 100px; }
-
-button {
-    background-color: var(--accent-color);
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
+    font-family: 'Cairo', sans-serif;
     transition: 0.3s;
 }
 
-button:hover { opacity: 0.9; }
+input:focus, textarea:focus {
+    border-color: var(--primary-color);
+    background: rgba(0, 0, 0, 0.5);
+    transform: scale(1.02);
+}
+
+textarea { resize: none; height: 120px; }
+
+/* تحسين الأزرار */
+button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+}
+
+button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
+}
+
+button:disabled {
+    background: #444;
+    cursor: not-allowed;
+    transform: none;
+}
 
 .secondary-btn {
-    background-color: transparent;
-    border: 1px solid var(--accent-color);
-    color: var(--accent-color);
-    margin-top: 5px;
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: none;
+    margin-top: 15px;
 }
 
-.result-box {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #4caf50;
-    margin: 20px 0;
-    padding: 20px;
-    border: 1px dashed #4caf50;
-    border-radius: 8px;
+.secondary-btn:hover {
+    background: rgba(108, 92, 231, 0.1);
+    color: #fff;
 }
 
-.request-item {
-    background: #252525;
-    padding: 15px;
+/* تحسين رفع الملفات */
+.file-upload-wrapper {
+    position: relative;
     margin-bottom: 15px;
-    border-radius: 8px;
     text-align: right;
-    border: 1px solid #333;
 }
 
-.request-item img {
-    max-width: 100px;
-    margin: 5px;
-    border-radius: 4px;
+.file-upload-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    padding: 12px;
+    border-radius: 10px;
     cursor: pointer;
+    transition: 0.3s;
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.file-upload-label:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+}
+
+.file-upload-label span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.file-upload-icon {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+input[type="file"] {
+    display: none; /* إخفاء الشكل القديم */
+}
+
+/* تحسين صندوق النتيجة */
+.result-box {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid #2ecc71;
+    color: #2ecc71;
+    font-size: 1.8rem;
+    font-weight: bold;
+    padding: 20px;
+    border-radius: 15px;
+    margin: 20px 0;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 .hidden { display: none; }
-label { display: block; text-align: right; margin-top: 10px; font-size: 0.9rem; color: #aaa;}
+label.title-label { display: block; text-align: right; margin: 10px 0 5px; color: var(--primary-color); font-size: 0.9rem;}
