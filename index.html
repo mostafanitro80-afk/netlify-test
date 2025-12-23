@@ -3,50 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مولد الأرقام العشوائية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <title>تسجيل الدخول</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="container">
-        <div id="login-section" class="active-section">
-            <h2>تسجيل الدخول</h2>
-            <p class="subtitle">مرحباً بعودتك!</p>
-            <input type="email" id="login-email" placeholder="البريد الإلكتروني">
-            <input type="password" id="login-pass" placeholder="كلمة المرور">
-            <button class="main-btn" onclick="login()">دخول</button>
-            <p class="switch-text">ليس لديك حساب؟ <span class="link" onclick="showRegister()">إنشاء حساب</span></p>
-        </div>
-
-        <div id="register-section" class="hidden-section">
-            <h2>إنشاء حساب جديد</h2>
-            <p class="subtitle">انضم إلينا اليوم</p>
-            <input type="email" id="reg-email" placeholder="البريد الإلكتروني">
-            <input type="password" id="reg-pass" placeholder="كلمة المرور">
-            <button class="main-btn" onclick="register()">تسجيل</button>
-            <p class="switch-text">لديك حساب بالفعل؟ <span class="link" onclick="showLogin()">تسجيل الدخول</span></p>
-        </div>
-
-        <div id="user-dashboard" class="hidden-section">
-            <h2>مرحباً بك!</h2>
-            <p class="subtitle">اضغط الزر لتوليد رقمك</p>
-            <div class="result-box">
-                <span id="random-number-display">0.00</span>
-            </div>
-            <button class="action-btn" onclick="generateNumber()">توليد رقم عشوائي</button>
-            <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
-        </div>
-
-        <div id="admin-dashboard" class="hidden-section">
-            <h2>لوحة المدير (Admin)</h2>
-            <h3>المستخدمين المسجلين:</h3>
-            <ul id="users-list">
-                </ul>
-            <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
-        </div>
+        <h2>تسجيل الدخول</h2>
+        <input type="text" id="accessCode" placeholder="أدخل كود التشغيل">
+        <button onclick="login()">دخول</button>
+        <button class="secondary-btn" onclick="window.location.href='create.html'">إنشاء كود مجاني</button>
+        <p style="margin-top: 20px; font-size: 12px;">
+            <a href="admin.html" style="color: #555; text-decoration: none;">Admin Access</a>
+        </p>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
