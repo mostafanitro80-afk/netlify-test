@@ -3,120 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة القيادة (ROOT)</title>
+    <title>Control Panel (ROOT)</title>
     <link rel="stylesheet" href="style.css">
-    <style>.container { max-width: 900px; }</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div id="confirmModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-title" id="confirmTitle">[ CONFIRM_ACTION ]</div>
-            <div class="modal-msg" id="confirmMsg">...</div>
-            <div class="modal-actions">
-                <button class="modal-btn" id="confirmOkBtn">نعم</button>
-                <button class="modal-btn cancel" onclick="closeConfirm()">إلغاء</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="alertModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-title" id="alertTitle">[ ADMIN_MSG ]</div>
-            <div class="modal-msg" id="alertMsg">...</div>
-            <div class="modal-actions"><button class="modal-btn" onclick="closeAlert()">موافق</button></div>
-        </div>
-    </div>
 
-    <div class="container">
+    <div class="container wide-mode">
         <div id="adminLogin">
-            <h2 id="typewriterTitle"></h2>
-            <input type="email" id="adminEmail" placeholder="USER_ID">
-            <input type="password" id="adminPass" placeholder="PASSPHRASE">
-            <button id="authBtn" onclick="playSound('click')">توثيق الدخول</button>
+            <h2><i class="fa-solid fa-user-secret"></i> دخول الأدمن</h2>
+            <div class="input-wrapper">
+                <input type="password" id="adminPass" placeholder="أدخل كلمة المرور السرية..." style="text-align:center;">
+            </div>
+            <button onclick="checkAdmin()">دخول</button>
         </div>
 
-        <div id="adminPanel" class="hidden">
-            <div class="stats-grid">
-                <div class="stat-card"><span class="stat-number" id="totalCount">0</span><span class="stat-label">إجمالي</span></div>
-                <div class="stat-card"><span class="stat-number" id="todayCount">0</span><span class="stat-label">اليوم</span></div>
-                <div class="stat-card" style="border-color: var(--danger-red);"><span class="stat-number" id="bannedCount" style="color:var(--danger-red);">0</span><span class="stat-label">محظورين</span></div>
+        <div id="adminPanel" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin:0;">لوحة القيادة</h2>
+                <button onclick="fetchRequests()" style="width: auto; padding: 10px 20px; font-size: 0.9rem; margin:0;">
+                    <i class="fa-solid fa-rotate"></i> تحديث
+                </button>
             </div>
 
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:15px;">
-                <h3 style="margin:0; color:#fff;">سجل العمليات الحية</h3>
-                <button onclick="playSound('click'); loadData()" style="width:auto; margin:0; font-size:0.9rem; background:transparent; border:1px solid #555; color:#fff;">تحديث ↻</button>
+            <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                <div style="flex:1; background:#111; padding:15px; border-radius:8px; border:1px solid #333; text-align:center;">
+                    <div style="font-size:2rem; font-weight:bold; color:var(--hacker-green);" id="countPending">0</div>
+                    <div style="color:#777; font-size:0.8rem;">طلبات الانتظار</div>
+                </div>
+                <div style="flex:1; background:#111; padding:15px; border-radius:8px; border:1px solid #333; text-align:center;">
+                    <div style="font-size:2rem; font-weight:bold; color:#fff;" id="countTotal">0</div>
+                    <div style="color:#777; font-size:0.8rem;">إجمالي الطلبات</div>
+                </div>
             </div>
-            <div id="requestsList" style="text-align: right;">جاري الاتصال...</div>
+
+            <div id="requestsGrid" class="requests-grid">
+                <p style="grid-column: 1/-1; text-align: center; color: #555;">جاري تحميل البيانات...</p>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) { if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); if (type === 'click') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.05); } }
-        function typeWriter(text, elementId) { let i = 0; const target = document.getElementById(elementId); target.innerHTML = ""; function type() { if (i < text.length) { target.innerHTML += text.charAt(i); i++; setTimeout(type, 50); } } type(); }
-        window.onload = () => typeWriter("دخول المشرف (ROOT)", "typewriterTitle");
-
-        // دوال المودال
-        function showAlert(title, msg) { document.getElementById('alertTitle').innerText = title; document.getElementById('alertMsg').innerText = msg; document.getElementById('alertModal').classList.add('active'); }
-        function closeAlert() { document.getElementById('alertModal').classList.remove('active'); }
-        let confirmCallback = null;
-        function showConfirm(title, msg, callback) { document.getElementById('confirmTitle').innerText = title; document.getElementById('confirmMsg').innerText = msg; confirmCallback = callback; document.getElementById('confirmModal').classList.add('active'); }
-        function closeConfirm() { document.getElementById('confirmModal').classList.remove('active'); }
-        document.getElementById('confirmOkBtn').onclick = () => { if(confirmCallback) confirmCallback(); closeConfirm(); };
-
         const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        document.getElementById('authBtn').addEventListener('click', () => {
-            const e = document.getElementById('adminEmail').value; const p = document.getElementById('adminPass').value;
-            if(e === "mm@mm.mm" && p === "mm023123") { document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); loadData(); } else { showAlert("❌ خطأ", "بيانات خاطئة!"); }
-        });
+        function checkAdmin() {
+            const p = document.getElementById('adminPass').value;
+            // كلمة سر بسيطة (يمكنك تغييرها)
+            if(p === "admin123" || p === "mm023123") {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                fetchRequests();
+            } else { alert("رمز الدخول خاطئ!"); }
+        }
 
-        async function activateCode(code) {
-            showConfirm("تفعيل الكود", "هل تريد تفعيل الكود لهذا المستخدم؟", async () => {
-                const { error } = await _supabase.from('active_codes').update({ is_active: true }).eq('code', code);
-                if(error) showAlert("خطأ", "فشل التفعيل."); else showAlert("نجاح ✅", "تم تفعيل الكود بنجاح.");
+        async function fetchRequests() {
+            const grid = document.getElementById('requestsGrid');
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">جاري التحديث...</p>';
+
+            const { data: requests, error } = await _supabase
+                .from('requests')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            const { data: activeCodes } = await _supabase.from('active_codes').select('*');
+
+            if (error || !requests) {
+                grid.innerHTML = '<p>خطأ في الاتصال</p>';
+                return;
+            }
+
+            document.getElementById('countTotal').innerText = requests.length;
+            document.getElementById('countPending').innerText = activeCodes.filter(c => !c.is_active).length;
+
+            grid.innerHTML = '';
+
+            requests.forEach(req => {
+                // حالة التفعيل
+                const codeStatus = activeCodes.find(c => c.code === req.generated_code);
+                const isActive = codeStatus ? codeStatus.is_active : false;
+                
+                const card = document.createElement('div');
+                card.className = 'request-card';
+                card.style.borderColor = isActive ? 'var(--hacker-green)' : '#333';
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span>${new Date(req.created_at).toLocaleTimeString('ar-EG')}</span>
+                        <span style="color: ${isActive ? 'var(--hacker-green)' : '#ffaa00'}">
+                            ${isActive ? '● نشط' : '○ معلق'}
+                        </span>
+                    </div>
+                    
+                    <div class="card-body">${req.user_data}</div>
+                    
+                    <div style="margin-bottom:10px; font-family:'Fira Code'; font-weight:bold; color:var(--hacker-green);">
+                        KEY: ${req.generated_code}
+                    </div>
+
+                    <div class="proof-imgs">
+                        <a href="${req.reg_proof_url}" target="_blank" title="تسجيل"><img src="${req.reg_proof_url}"></a>
+                        <a href="${req.dep_proof_url}" target="_blank" title="إيداع"><img src="${req.dep_proof_url}"></a>
+                    </div>
+
+                    <div class="action-bar">
+                        ${!isActive ? 
+                        `<button class="action-btn btn-approve" onclick="activate('${req.generated_code}')">
+                            <i class="fa-solid fa-check"></i> تفعيل
+                        </button>` : 
+                        `<button class="action-btn" style="color:#555; cursor:default;">مفعل</button>`
+                        }
+                        
+                        <button class="action-btn btn-ban" onclick="banUser('${req.user_data}')">
+                            <i class="fa-solid fa-ban"></i> حظر
+                        </button>
+                        
+                        <button class="action-btn btn-delete" onclick="delReq(${req.id})">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
             });
         }
-        async function banUser(ip) { showConfirm("حظر IP", `حظر ${ip} نهائياً؟`, async () => { const { error } = await _supabase.from('banned_ips').insert([{ ip: ip }]); if(error) showAlert("خطأ", "فشل الحظر."); else { showAlert("تم", "تم الحظر 🚫"); loadData(); } }); }
-        async function deleteRequest(id) { showConfirm("حذف", "حذف السجل نهائياً؟", async () => { await _supabase.from('requests').delete().eq('id', id); loadData(); }); }
 
-        async function loadData() {
-            const list = document.getElementById('requestsList'); list.innerHTML = 'جاري التحميل...';
-            const { data: requests } = await _supabase.from('requests').select('*').order('created_at', {ascending:false});
-            const { count: bannedCount } = await _supabase.from('banned_ips').select('*', { count: 'exact', head: true });
+        async function activate(code) {
+            if(!confirm("تفعيل هذا الكود؟")) return;
+            await _supabase.from('active_codes').update({ is_active: true }).eq('code', code);
+            fetchRequests();
+        }
 
-            if(requests) {
-                document.getElementById('totalCount').innerText = requests.length;
-                document.getElementById('bannedCount').innerText = bannedCount || 0;
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('todayCount').innerText = requests.filter(r => r.created_at.startsWith(today)).length;
-                list.innerHTML = '';
-                requests.forEach(r => {
-                    const ipMatch = r.user_data.match(/IP: ([\d\.]+)/);
-                    const userIP = ipMatch ? ipMatch[1] : 'Unknown';
-                    const d = new Date(r.created_at).toLocaleString('ar-EG');
-                    const div = document.createElement('div');
-                    div.style.cssText = "background:#050505; border:1px solid #333; padding:20px; margin-bottom:15px; border-right: 4px solid #0f0;";
-                    div.innerHTML = `
-                        <div style="color:#666; font-size:0.8rem; margin-bottom:10px; font-family:'Fira Code'; display:flex; justify-content:space-between;"><span>${d}</span><span style="color:#fff;">IP: ${userIP}</span></div>
-                        <div style="background:#111; padding:15px; white-space:pre-wrap; color:#fff; margin-bottom:10px;">${r.user_data}</div>
-                        <p>الكود: <span style="color:#0f0; font-weight:bold; font-family:'Fira Code'; font-size:1.2rem;">${r.generated_code}</span></p>
-                        <div style="display:flex; gap:10px; margin-top:15px; flex-wrap:wrap;">
-                            <a href="${r.reg_proof_url}" target="_blank"><img src="${r.reg_proof_url}" height="60" style="border:1px solid #555"></a>
-                            <a href="${r.dep_proof_url}" target="_blank"><img src="${r.dep_proof_url}" height="60" style="border:1px solid #555"></a>
-                        </div>
-                        <div style="margin-top:15px; border-top:1px dashed #333; padding-top:10px;">
-                            <button class="action-btn activate-btn" onclick="activateCode('${r.generated_code}')">✅ تفعيل</button>
-                            <button class="action-btn ban-btn" onclick="banUser('${userIP}')">🚫 حظر</button>
-                            <button class="action-btn delete-btn" onclick="deleteRequest(${r.id})">🗑️ حذف</button>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-            } else { list.innerHTML = '<p>لا توجد بيانات.</p>'; }
+        async function delReq(id) {
+            if(!confirm("حذف السجل نهائياً؟")) return;
+            await _supabase.from('requests').delete().eq('id', id);
+            fetchRequests();
+        }
+
+        async function banUser(userData) {
+            const match = userData.match(/IP: ([\d\.]+)/);
+            if(match) {
+                const ip = match[1];
+                if(confirm(`حظر IP: ${ip}؟`)) {
+                    await _supabase.from('banned_ips').insert([{ ip: ip }]);
+                    alert("تم الحظر");
+                }
+            } else {
+                alert("لم يتم العثور على IP في البيانات");
+            }
         }
     </script>
 </body>
