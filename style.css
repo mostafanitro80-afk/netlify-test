@@ -1,4 +1,4 @@
-/* style.css - النسخة النهائية (زر لصق ثابت وصغير) */
+/* style.css - النسخة النهائية (بدون زر لصق + انترو لوجو) */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
@@ -23,6 +23,8 @@ body {
     display: flex; justify-content: center; align-items: center;
     min-height: 100vh; direction: rtl;
     overflow-x: hidden; position: relative;
+    
+    /* خلفية المطر الرقمي */
     background-image: linear-gradient(0deg, transparent 24%, var(--hacker-dim) 25%, var(--hacker-dim) 26%, transparent 27%, transparent 74%, var(--hacker-dim) 75%, var(--hacker-dim) 76%, transparent 77%, transparent), 
                       linear-gradient(90deg, transparent 24%, var(--hacker-dim) 25%, var(--hacker-dim) 26%, transparent 27%, transparent 74%, var(--hacker-dim) 75%, var(--hacker-dim) 76%, transparent 77%, transparent);
     background-size: 40px 40px;
@@ -31,6 +33,7 @@ body {
 
 @keyframes matrixMove { 0% { background-position: 0 0; } 100% { background-position: 40px 40px; } }
 
+/* تأثير الاهتزاز */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
@@ -38,6 +41,7 @@ body {
 }
 .shake-element { animation: shake 0.4s ease-in-out; }
 
+/* تأثير النبض الأخضر */
 @keyframes pulse-green {
     0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.4); }
     70% { box-shadow: 0 0 0 10px rgba(0, 255, 65, 0); }
@@ -50,6 +54,35 @@ body::before {
     pointer-events: none; z-index: 0;
 }
 
+/* === تنسيقات الانترو (شاشة الدخول) === */
+.intro-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #000; z-index: 5000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    transition: opacity 1s ease-out;
+}
+.intro-logo {
+    width: 150px; height: auto;
+    filter: drop-shadow(0 0 15px var(--hacker-green));
+    animation: logoPulse 2s infinite ease-in-out;
+    margin-bottom: 20px;
+}
+.intro-text {
+    font-family: 'Fira Code', monospace;
+    color: var(--hacker-green);
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    animation: blinkText 1s infinite;
+}
+@keyframes logoPulse {
+    0% { transform: scale(1); filter: drop-shadow(0 0 10px var(--hacker-green)); }
+    50% { transform: scale(1.1); filter: drop-shadow(0 0 25px var(--hacker-green)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 10px var(--hacker-green)); }
+}
+@keyframes blinkText { 50% { opacity: 0; } }
+.intro-screen.fade-out { opacity: 0; pointer-events: none; }
+
+
 .container {
     background: var(--glass-bg);
     padding: 2.5rem;
@@ -59,7 +92,8 @@ body::before {
     width: 95%; max-width: 480px;
     text-align: center; position: relative;
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1); z-index: 1;
+    animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1); z-index: 1;
+    display: none; /* مخفي مبدئياً حتى ينتهي الانترو */
 }
 
 .container.wide-mode { max-width: 900px; }
@@ -86,30 +120,7 @@ body::before {
 .telegram-float:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 0 35px #24A1DE; }
 .telegram-float svg { width: 28px; height: 28px; fill: #fff; }
 
-/* === تعديل زر اللصق (ثابت وصغير) === */
 .input-wrapper { position: relative; width: 100%; margin-bottom: 0; }
-
-.paste-btn {
-    position: absolute;
-    left: 5px;            /* مسافة صغيرة من اليسار */
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    color: var(--hacker-green);
-    font-size: 14px;      /* حجم صغير */
-    padding: 5px;
-    cursor: pointer;
-    z-index: 20;
-    opacity: 0.7;
-    /* لا يوجد transition أو transform هنا */
-}
-
-.paste-btn:hover {
-    opacity: 1;
-    color: #fff;
-    /* لا يوجد حركة عند اللمس */
-}
 
 textarea, input {
     width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #333; 
