@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد الأرقام</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>نظام التوليد العشوائي</h2>
+        <div class="result-box" id="randomNumber">0.00</div>
+        <button onclick="generateRandom()">توليد رقم</button>
+        <button class="secondary-btn" onclick="logout()">خروج</button>
+    </div>
+
+    <script>
+        // التحقق من الجلسة
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+
+        function generateRandom() {
+            // توليد رقم بين 1.00 و 30.00
+            let num = (Math.random() * 29 + 1).toFixed(2);
+            document.getElementById('randomNumber').innerText = num;
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
