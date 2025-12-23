@@ -3,81 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول</title>
+    <title>تسجيل الدخول الآمن</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h2>تسجيل الدخول</h2>
-        <input type="text" id="accessCode" placeholder="أدخل كود التشغيل">
+        <h2>🔐 تسجيل الدخول</h2>
+        <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">أدخل كود التفعيل الخاص بك للوصول</p>
         
-        <button id="loginBtn">دخول</button>
-        <button class="secondary-btn" onclick="window.location.href='create.html'">إنشاء كود مجاني</button>
+        <input type="text" id="accessCode" placeholder="CODE-XXXXXX" style="text-align: center; letter-spacing: 2px; font-weight: bold;">
         
-        <p style="margin-top: 20px; font-size: 12px;">
-            <a href="admin.html" style="color: #555; text-decoration: none;">Admin Access</a>
+        <button id="loginBtn">دخول للموقع</button>
+        <button class="secondary-btn" onclick="window.location.href='create.html'">✨ إنشاء كود جديد</button>
+        
+        <p style="margin-top: 30px; font-size: 12px; opacity: 0.6;">
+            <a href="admin.html" style="color: #fff; text-decoration: none;">الدخول كمسؤول (Admin)</a>
         </p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
-        // 1. إعدادات Supabase
+        // نفس الكود الخاص بك الذي يعمل
         const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         
-        // التأكد من تحميل المكتبة
-        if (typeof supabase === 'undefined') {
-            alert('خطأ: مكتبة Supabase لم يتم تحميلها. تأكد من الإنترنت.');
-        } else {
-            // إنشاء العميل
-            var _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
+        if (typeof supabase === 'undefined') { alert('Error loading libraries'); } 
+        else { var _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
 
-        // 2. دالة تسجيل الدخول
         async function runLogin() {
             const codeInput = document.getElementById('accessCode').value.trim();
             const btn = document.getElementById('loginBtn');
             
-            if (!codeInput) {
-                alert("الرجاء كتابة الكود");
-                return;
-            }
+            if (!codeInput) { alert("الرجاء كتابة الكود"); return; }
 
-            btn.innerText = "جاري التحقق...";
+            btn.innerHTML = "⏳ جاري التحقق...";
             btn.disabled = true;
 
             try {
-                // البحث في قاعدة البيانات
                 const { data, error } = await _supabase
                     .from('active_codes')
                     .select('*')
                     .eq('code', codeInput);
 
-                if (error) {
-                    console.error('Supabase Error:', error);
-                    alert("خطأ في الاتصال بقاعدة البيانات");
-                    btn.innerText = "دخول";
-                    btn.disabled = false;
-                } 
+                if (error) { throw error; } 
                 else if (data && data.length > 0) {
-                    // نجاح
                     localStorage.setItem('isLoggedIn', 'true');
                     window.location.href = 'app.html';
                 } else {
-                    alert("الكود غير صحيح");
-                    btn.innerText = "دخول";
+                    alert("❌ الكود غير صحيح");
+                    btn.innerHTML = "دخول للموقع";
                     btn.disabled = false;
                 }
             } catch (err) {
-                console.error(err);
-                alert("حدث خطأ غير متوقع: " + err.message);
-                btn.innerText = "دخول";
+                alert("خطأ: " + err.message);
+                btn.innerHTML = "دخول للموقع";
                 btn.disabled = false;
             }
         }
-
-        // ربط الزر بالدالة يدوياً لضمان العمل
         document.getElementById('loginBtn').addEventListener('click', runLogin);
     </script>
 </body>
