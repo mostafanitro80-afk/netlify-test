@@ -3,113 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء كود</title>
+    <title>طلب تفعيل</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <div id="toast" class="custom-toast">
+        <span id="toastIcon">⚠️</span>
+        <span id="toastMessage">رسالة التنبيه هنا</span>
+    </div>
+
     <div class="container">
-        <h2>طلب كود تفعيل</h2>
+        <h2>🚀 طلب كود تفعيل</h2>
         
-        <label>بياناتك (البريد، الآيدي، ملاحظات):</label>
-        <textarea id="userData" placeholder="اكتب البريد : example@mail.com &#10;الايدي : 123456"></textarea>
+        <label class="title">بياناتك:</label>
+        <textarea id="userData" placeholder="اكتب هنا البريد الإلكتروني والآيدي الخاص بك..."></textarea>
 
-        <label>دليل التسجيل (صورة):</label>
-        <input type="file" id="regProof" accept="image/*">
+        <label class="title">دليل التسجيل:</label>
+        <label for="regProof" class="upload-box" id="regBox">
+            <span class="icon">📷</span>
+            <span id="regText">اضغط لرفع صورة التسجيل</span>
+            <input type="file" id="regProof" accept="image/*" onchange="handleFileSelect(this, 'regBox', 'regText')">
+        </label>
 
-        <label>دليل الإيداع (صورة):</label>
-        <input type="file" id="depProof" accept="image/*">
+        <label class="title">دليل الإيداع:</label>
+        <label for="depProof" class="upload-box" id="depBox">
+            <span class="icon">💰</span>
+            <span id="depText">اضغط لرفع صورة الإيداع</span>
+            <input type="file" id="depProof" accept="image/*" onchange="handleFileSelect(this, 'depBox', 'depText')">
+        </label>
 
-        <button id="submitBtn">إنشاء الكود</button>
+        <button id="submitBtn">✨ إنشاء الكود الآن</button>
         
-        <div id="codeDisplay" class="hidden">
-            <p>تم إنشاء الكود بنجاح!</p>
-            <div class="result-box" id="generatedCode"></div>
-            <p style="font-size: 0.8rem; color: #aaa;">انسخ الكود واذهب لصفحة الدخول</p>
-            <button class="secondary-btn" onclick="window.location.href='index.html'">العودة للدخول</button>
+        <div id="codeDisplay" class="hidden" style="margin-top: 20px;">
+            <p style="color:#2ecc71; font-weight:bold;">تمت العملية بنجاح!</p>
+            <div style="background:#222; padding:15px; border:1px dashed #2ecc71; border-radius:10px; margin:10px 0; color:#2ecc71; font-size:1.5rem; letter-spacing:2px;" id="generatedCode"></div>
+            <button class="secondary-btn" onclick="window.location.href='index.html'">العودة لتسجيل الدخول</button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
+        // إعدادات الاتصال (نفس بياناتك)
         const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
-        
-        // إنشاء العميل
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // دالة رفع الصور
+        // --- وظيفة الإشعار الاحترافي (بديل الـ Alert) ---
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            const icon = document.getElementById('toastIcon');
+
+            msg.innerText = message;
+            toast.className = `custom-toast ${type} show`; // إضافة كلاس للظهور
+            
+            if(type === 'success') icon.innerText = '✅';
+            else icon.innerText = '⚠️';
+
+            // إخفاء الإشعار بعد 4 ثواني
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // --- وظيفة تغيير شكل المربع عند اختيار صورة ---
+        function handleFileSelect(input, boxId, textId) {
+            const box = document.getElementById(boxId);
+            const text = document.getElementById(textId);
+            
+            if (input.files && input.files[0]) {
+                box.classList.add('uploaded');
+                text.innerText = "تم اختيار: " + input.files[0].name;
+                // تشغيل صوت بسيط أو اهتزاز إذا أردت (اختياري)
+            }
+        }
+
+        // --- وظيفة الرفع (نفس المنطق السابق لكن مع التنبيهات الجديدة) ---
         async function uploadImage(file) {
             const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-            const { data, error } = await _supabase.storage
-                .from('proofs') 
-                .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
+            const { data, error } = await _supabase.storage.from('proofs').upload(fileName, file, { upsert: false });
             if (error) throw error;
-
-            const { data: publicUrlData } = _supabase.storage
-                .from('proofs')
-                .getPublicUrl(fileName);
-                
+            const { data: publicUrlData } = _supabase.storage.from('proofs').getPublicUrl(fileName);
             return publicUrlData.publicUrl;
         }
 
-        // دالة تنفيذ الطلب
         async function runSubmit() {
             const userData = document.getElementById('userData').value;
             const regProofFile = document.getElementById('regProof').files[0];
             const depProofFile = document.getElementById('depProof').files[0];
             const btn = document.getElementById('submitBtn');
 
-            if (!userData || !regProofFile || !depProofFile) {
-                alert("يرجى ملء البيانات واختيار الصور");
-                return;
-            }
+            // استخدام التنبيه الجديد بدلاً من alert
+            if (!userData) { showToast("يرجى كتابة البيانات المطلوبة"); return; }
+            if (!regProofFile) { showToast("يرجى رفع صورة دليل التسجيل"); return; }
+            if (!depProofFile) { showToast("يرجى رفع صورة دليل الإيداع"); return; }
 
-            btn.innerText = "جاري المعالجة...";
+            btn.innerHTML = "جاري المعالجة...";
             btn.disabled = true;
 
             try {
-                // 1. رفع الصور
                 const regUrl = await uploadImage(regProofFile);
                 const depUrl = await uploadImage(depProofFile);
-
-                // 2. توليد الكود
                 const generatedCode = 'CODE-' + Math.floor(100000 + Math.random() * 900000);
 
-                // 3. الحفظ في قاعدة البيانات
                 const { error: insertError } = await _supabase
                     .from('requests')
                     .insert([{ 
-                        user_data: userData, 
-                        reg_proof_url: regUrl, 
-                        dep_proof_url: depUrl,
-                        generated_code: generatedCode
+                        user_data: userData, reg_proof_url: regUrl, dep_proof_url: depUrl, generated_code: generatedCode
                     }]);
-
                 if (insertError) throw insertError;
 
-                // 4. تفعيل الكود
-                const { error: codeError } = await _supabase
-                    .from('active_codes')
-                    .insert([{ code: generatedCode }]);
-                
+                const { error: codeError } = await _supabase.from('active_codes').insert([{ code: generatedCode }]);
                 if (codeError) throw codeError;
 
                 // نجاح
+                showToast("تم إنشاء الكود بنجاح!", "success");
                 document.getElementById('codeDisplay').classList.remove('hidden');
                 document.getElementById('generatedCode').innerText = generatedCode;
-                btn.style.display = 'none';
-
+                btn.style.display = 'none'; // إخفاء الزر
+                
             } catch (error) {
                 console.error(error);
-                alert("حدث خطأ: " + error.message);
-                btn.innerText = "إنشاء الكود";
+                showToast("حدث خطأ: " + error.message, "error");
+                btn.innerHTML = "✨ إنشاء الكود الآن";
                 btn.disabled = false;
             }
         }
-
-        // تشغيل الزر
         document.getElementById('submitBtn').addEventListener('click', runSubmit);
     </script>
 </body>
