@@ -34,7 +34,7 @@
         </div>
 
         <button id="loginBtn">بدء الاتصال</button>
-        <button class="secondary-btn" onclick="window.location.href='create.html'" style="width:100%;">طلب مفتاح جديد</button>
+        <button class="secondary-btn" onclick="window.location.href='create'" style="width:100%;">طلب مفتاح جديد</button>
         <p id="vpnWarning" style="color: var(--warning-orange); font-size: 0.8rem; margin-top: 10px; display: none;">⚠️ تحذير: تم اكتشاف اتصال VPN/Proxy</p>
     </div>
 
@@ -100,7 +100,7 @@
                     showModal("❌ خطأ", "الكود غير صحيح!");
                     shakeScreen();
                 } else if (data.is_active === true) {
-                    localStorage.setItem('isLoggedIn', 'true'); window.location.href = 'app.html';
+                    localStorage.setItem('isLoggedIn', 'true'); window.location.href = 'app'; // الرابط بدون .html
                 } else {
                     showModal("⏳ قيد الانتظار", "هذا الكود صحيح ولكنه بانتظار موافقة الأدمن.");
                 }
