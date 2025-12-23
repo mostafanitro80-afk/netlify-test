@@ -25,7 +25,7 @@
     <div class="container wide-mode" id="mainContainer" style="display:none;">
         <h2 id="typewriterTitle"></h2>
         
-        <label class="title">>> اختر النظام المستهدف (Tooltips):</label>
+        <label class="title">>> اختر النظام المستهدف:</label>
         <div class="program-grid">
             <div class="program-option" data-tooltip="نظام المراهنات 1xBet" onclick="playSound('click'); selectProgram('1x', this)"><img src="1x.png" class="program-icon"></div>
             <div class="program-option" data-tooltip="نظام Melbet" onclick="playSound('click'); selectProgram('m', this)"><img src="m.png" class="program-icon"></div>
@@ -58,7 +58,7 @@
         
         <div id="codeDisplay" class="hidden" style="margin-top: 30px; border-top: 1px solid rgba(0,255,0,0.2); padding-top: 20px;">
             <p style="color:var(--hacker-green);">>> تم إرسال الطلب للمراجعة. الكود الخاص بك:</p>
-            <div style="background:rgba(0,0,0,0.5); padding:20px; border-radius:10px; border:1px solid var(--hacker-green); margin:15px 0; font-size:2.2rem; font-weight:900; letter-spacing:4px; font-family:'Fira Code'; color:#fff;" id="generatedCode"></div>
+            <div style="background:rgba(0,0,0,0.5); padding:20px; border-radius:10px; border:1px solid var(--hacker-green); margin:15px 0; font-size:2.2rem; font-weight:900; letter-spacing:4px; font-family:'Fira Code'; color:#fff; text-shadow: 0 0 10px var(--hacker-green);" id="generatedCode"></div>
             
             <p style="color:#ffaa00; font-size:0.9rem; margin-bottom:15px; font-family:'Cairo';">⚠️ احتفظ بالكود! لن يعمل حتى يوافق الأدمن.</p>
 
@@ -79,7 +79,6 @@
         let userIP = "Unknown";
         let selectedProgram = null;
 
-        // تحديد نوع الجهاز (Fingerprinting مبسط)
         function getDeviceType() {
             const ua = navigator.userAgent;
             if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet";
@@ -90,7 +89,6 @@
             return btoa(navigator.userAgent + screen.width + screen.colorDepth).slice(0, 12);
         }
 
-        // تحديث العداد
         setInterval(() => {
             document.getElementById('liveCounter').innerText = `المتصلين: ${Math.floor(Math.random() * 50) + 300}`;
         }, 3000);
@@ -154,12 +152,10 @@
                 const depUrl = await uploadImage(depFile);
                 const code = 'CODE-' + Math.floor(100000 + Math.random() * 900000);
                 
-                // جمع معلومات الجهاز
                 const device = getDeviceType();
                 const fp = getFingerprint();
                 const fullData = `System: [${selectedProgram}] | IP: ${userIP}\nDevice: ${device} | FP: ${fp}\n${userData}`;
 
-                // هنا: يتم إدخال البيانات
                 await _supabase.from('requests').insert([{ user_data: fullData, reg_proof_url: regUrl, dep_proof_url: depUrl, generated_code: code }]);
                 await _supabase.from('active_codes').insert([{ code: code, is_active: false }]);
 
