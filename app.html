@@ -9,23 +9,23 @@
 <body>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; border: none; font-size: 1.5rem;">نظام التحليل</h2>
-            <div style="font-size: 12px; color: var(--hacker-green); font-weight: bold;">متصل ●</div>
+            <h2 style="margin: 0; border: none; font-size: 1.5rem;">تحليل الإشارة</h2>
+            <div style="font-size: 12px; color: var(--hacker-green); font-weight: bold; text-shadow:0 0 5px var(--hacker-green);">متصل ●</div>
         </div>
 
-        <p style="color: #666;">جاري سحب البيانات...</p>
+        <p style="color: #666;">جاري سحب البيانات من السيرفر...</p>
 
         <div class="monitor-screen">
-            <div style="font-size: 0.8rem; color: #555; text-align: left; direction: ltr;">TARGET_SIGNAL</div>
+            <div style="font-size: 0.8rem; color: #555; text-align: left; direction: ltr;">TARGET_SIGNAL_VAL</div>
             <div class="big-number" id="randomNumber">--.--</div>
             
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
-            <div style="text-align: right; font-size: 0.7rem; color: #555; margin-top: 5px;">تحديث: 7s</div>
+            <div style="text-align: right; font-size: 0.7rem; color: #555; margin-top: 5px;">التحديث: 7s</div>
         </div>
 
-        <button class="secondary-btn" onclick="logout()">إغلاق الجلسة</button>
+        <button class="secondary-btn" onclick="logout()">قطع الاتصال</button>
     </div>
 
     <script>
