@@ -3,120 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة القيادة (ROOT)</title>
+    <title>لوحة القيادة المتطورة</title>
     <link rel="stylesheet" href="style.css">
-    <style>.container { max-width: 900px; }</style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>.container { max-width: 1000px; }</style>
 </head>
 <body>
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-box">
-            <div class="modal-title" id="confirmTitle">[ CONFIRM_ACTION ]</div>
-            <div class="modal-msg" id="confirmMsg">...</div>
-            <div class="modal-actions">
-                <button class="modal-btn" id="confirmOkBtn">نعم</button>
-                <button class="modal-btn cancel" onclick="closeConfirm()">إلغاء</button>
-            </div>
+            <div class="modal-title" id="confirmTitle"></div>
+            <div class="modal-msg" id="confirmMsg"></div>
+            <div class="modal-actions"><button class="modal-btn" id="confirmOkBtn">نعم</button><button class="modal-btn cancel" onclick="closeConfirm()">إلغاء</button></div>
         </div>
     </div>
-    
-    <div id="alertModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-title" id="alertTitle">[ ADMIN_MSG ]</div>
-            <div class="modal-msg" id="alertMsg">...</div>
-            <div class="modal-actions"><button class="modal-btn" onclick="closeAlert()">موافق</button></div>
-        </div>
-    </div>
+    <div id="alertModal" class="modal-overlay"><div class="modal-box"><div class="modal-title" id="alertTitle"></div><div class="modal-msg" id="alertMsg"></div><div class="modal-actions"><button class="modal-btn" onclick="closeAlert()">موافق</button></div></div></div>
 
     <div class="container">
         <div id="adminLogin">
             <h2 id="typewriterTitle"></h2>
             <input type="email" id="adminEmail" placeholder="USER_ID">
             <input type="password" id="adminPass" placeholder="PASSPHRASE">
-            <button id="authBtn" onclick="playSound('click')">توثيق الدخول</button>
+            <button id="authBtn">توثيق الدخول</button>
         </div>
 
         <div id="adminPanel" class="hidden">
             <div class="stats-grid">
-                <div class="stat-card"><span class="stat-number" id="totalCount">0</span><span class="stat-label">إجمالي</span></div>
-                <div class="stat-card"><span class="stat-number" id="todayCount">0</span><span class="stat-label">اليوم</span></div>
-                <div class="stat-card" style="border-color: var(--danger-red);"><span class="stat-number" id="bannedCount" style="color:var(--danger-red);">0</span><span class="stat-label">محظورين</span></div>
+                <div class="stat-card"><span class="stat-number" id="totalCount">0</span><span class="stat-label">إجمالي الطلبات</span></div>
+                <div class="stat-card"><span class="stat-number" id="todayCount">0</span><span class="stat-label">طلبات اليوم</span></div>
+                <div class="stat-card money"><span class="stat-number" id="totalRevenue" style="color:var(--warning-orange);">$0</span><span class="stat-label">إجمالي العائدات [83]</span></div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:15px;">
-                <h3 style="margin:0; color:#fff;">سجل العمليات الحية</h3>
-                <button onclick="playSound('click'); loadData()" style="width:auto; margin:0; font-size:0.9rem; background:transparent; border:1px solid #555; color:#fff;">تحديث ↻</button>
+            <div class="charts-container">
+                <div class="chart-box"><canvas id="weeklyChart"></canvas></div>
+                <div class="chart-box"><canvas id="systemChart"></canvas></div>
             </div>
+
+            <div class="admin-toolbar">
+                <input type="text" id="searchInput" class="search-input" placeholder="بحث (ID, Email, Code)..." onkeyup="filterData()">
+                <select id="filterSelect" class="filter-select" onchange="filterData()">
+                    <option value="all">الكل</option>
+                    <option value="pending">المعلقة</option>
+                    <option value="active">المفعلة</option>
+                </select>
+                <button onclick="loadData()" style="width:auto; margin:0; padding:10px;">تحديث ↻</button>
+            </div>
+
             <div id="requestsList" style="text-align: right;">جاري الاتصال...</div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Setup
+        const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let allRequests = []; // Store for filtering
+
+        // Audio & FX
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) { if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); if (type === 'click') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.05); } }
         function typeWriter(text, elementId) { let i = 0; const target = document.getElementById(elementId); target.innerHTML = ""; function type() { if (i < text.length) { target.innerHTML += text.charAt(i); i++; setTimeout(type, 50); } } type(); }
         window.onload = () => typeWriter("دخول المشرف (ROOT)", "typewriterTitle");
 
-        // دوال المودال
-        function showAlert(title, msg) { document.getElementById('alertTitle').innerText = title; document.getElementById('alertMsg').innerText = msg; document.getElementById('alertModal').classList.add('active'); }
+        // Modal Logic
+        function showAlert(t, m) { document.getElementById('alertTitle').innerText = t; document.getElementById('alertMsg').innerText = m; document.getElementById('alertModal').classList.add('active'); }
         function closeAlert() { document.getElementById('alertModal').classList.remove('active'); }
-        let confirmCallback = null;
-        function showConfirm(title, msg, callback) { document.getElementById('confirmTitle').innerText = title; document.getElementById('confirmMsg').innerText = msg; confirmCallback = callback; document.getElementById('confirmModal').classList.add('active'); }
+        let confirmCb = null;
+        function showConfirm(t, m, cb) { document.getElementById('confirmTitle').innerText = t; document.getElementById('confirmMsg').innerText = m; confirmCb = cb; document.getElementById('confirmModal').classList.add('active'); }
         function closeConfirm() { document.getElementById('confirmModal').classList.remove('active'); }
-        document.getElementById('confirmOkBtn').onclick = () => { if(confirmCallback) confirmCallback(); closeConfirm(); };
+        document.getElementById('confirmOkBtn').onclick = () => { if(confirmCb) confirmCb(); closeConfirm(); };
 
-        const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        // Auth
         document.getElementById('authBtn').addEventListener('click', () => {
-            const e = document.getElementById('adminEmail').value; const p = document.getElementById('adminPass').value;
-            if(e === "mm@mm.mm" && p === "mm023123") { document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); loadData(); } else { showAlert("❌ خطأ", "بيانات خاطئة!"); }
+            if(document.getElementById('adminEmail').value === "mm@mm.mm" && document.getElementById('adminPass').value === "mm023123") {
+                document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); loadData();
+            } else { showAlert("❌ خطأ", "بيانات خاطئة!"); }
         });
 
-        async function activateCode(code) {
-            showConfirm("تفعيل الكود", "هل تريد تفعيل الكود لهذا المستخدم؟", async () => {
-                const { error } = await _supabase.from('active_codes').update({ is_active: true }).eq('code', code);
-                if(error) showAlert("خطأ", "فشل التفعيل."); else showAlert("نجاح ✅", "تم تفعيل الكود بنجاح.");
+        // [83] Money & Activation
+        async function activateCode(code, dbId) {
+            let amount = prompt("💰 [83] أدخل قيمة العائد من هذا المستخدم ($):", "0");
+            if(amount === null) return;
+            
+            showConfirm("تأكيد التفعيل", `تفعيل الكود وتسجيل $${amount}؟`, async () => {
+                // Update Code status
+                await _supabase.from('active_codes').update({ is_active: true }).eq('code', code);
+                // Update Revenue in Request
+                await _supabase.from('requests').update({ revenue: parseFloat(amount) || 0 }).eq('id', dbId);
+                showAlert("نجاح", "تم التفعيل وتسجيل المبلغ.");
+                loadData();
             });
         }
-        async function banUser(ip) { showConfirm("حظر IP", `حظر ${ip} نهائياً؟`, async () => { const { error } = await _supabase.from('banned_ips').insert([{ ip: ip }]); if(error) showAlert("خطأ", "فشل الحظر."); else { showAlert("تم", "تم الحظر 🚫"); loadData(); } }); }
-        async function deleteRequest(id) { showConfirm("حذف", "حذف السجل نهائياً؟", async () => { await _supabase.from('requests').delete().eq('id', id); loadData(); }); }
 
+        // [49] Edit Code
+        async function editCode(oldCode, dbId) {
+            let newCode = prompt("✏️ [49] تعديل الكود يدوياً:", oldCode);
+            if(newCode && newCode !== oldCode) {
+                await _supabase.from('requests').update({ generated_code: newCode }).eq('id', dbId);
+                await _supabase.from('active_codes').update({ code: newCode }).eq('code', oldCode);
+                loadData();
+            }
+        }
+
+        // [42] Save Note
+        async function saveNote(id, val) {
+            await _supabase.from('requests').update({ admin_note: val }).eq('id', id);
+        }
+
+        async function banUser(ip) { showConfirm("حظر", `حظر ${ip}؟`, async () => { await _supabase.from('banned_ips').insert([{ ip: ip }]); showAlert("تم", "تم الحظر"); loadData(); }); }
+        async function deleteRequest(id) { showConfirm("حذف", "حذف نهائي؟", async () => { await _supabase.from('requests').delete().eq('id', id); loadData(); }); }
+
+        // Data Loading
         async function loadData() {
             const list = document.getElementById('requestsList'); list.innerHTML = 'جاري التحميل...';
             const { data: requests } = await _supabase.from('requests').select('*').order('created_at', {ascending:false});
-            const { count: bannedCount } = await _supabase.from('banned_ips').select('*', { count: 'exact', head: true });
-
+            const { data: activeCodes } = await _supabase.from('active_codes').select('*');
+            
             if(requests) {
-                document.getElementById('totalCount').innerText = requests.length;
-                document.getElementById('bannedCount').innerText = bannedCount || 0;
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('todayCount').innerText = requests.filter(r => r.created_at.startsWith(today)).length;
-                list.innerHTML = '';
-                requests.forEach(r => {
-                    const ipMatch = r.user_data.match(/IP: ([\d\.]+)/);
-                    const userIP = ipMatch ? ipMatch[1] : 'Unknown';
-                    const d = new Date(r.created_at).toLocaleString('ar-EG');
-                    const div = document.createElement('div');
-                    div.style.cssText = "background:#050505; border:1px solid #333; padding:20px; margin-bottom:15px; border-right: 4px solid #0f0;";
-                    div.innerHTML = `
-                        <div style="color:#666; font-size:0.8rem; margin-bottom:10px; font-family:'Fira Code'; display:flex; justify-content:space-between;"><span>${d}</span><span style="color:#fff;">IP: ${userIP}</span></div>
-                        <div style="background:#111; padding:15px; white-space:pre-wrap; color:#fff; margin-bottom:10px;">${r.user_data}</div>
-                        <p>الكود: <span style="color:#0f0; font-weight:bold; font-family:'Fira Code'; font-size:1.2rem;">${r.generated_code}</span></p>
-                        <div style="display:flex; gap:10px; margin-top:15px; flex-wrap:wrap;">
-                            <a href="${r.reg_proof_url}" target="_blank"><img src="${r.reg_proof_url}" height="60" style="border:1px solid #555"></a>
-                            <a href="${r.dep_proof_url}" target="_blank"><img src="${r.dep_proof_url}" height="60" style="border:1px solid #555"></a>
-                        </div>
-                        <div style="margin-top:15px; border-top:1px dashed #333; padding-top:10px;">
-                            <button class="action-btn activate-btn" onclick="activateCode('${r.generated_code}')">✅ تفعيل</button>
-                            <button class="action-btn ban-btn" onclick="banUser('${userIP}')">🚫 حظر</button>
-                            <button class="action-btn delete-btn" onclick="deleteRequest(${r.id})">🗑️ حذف</button>
-                        </div>
-                    `;
-                    list.appendChild(div);
+                // Merge active status
+                allRequests = requests.map(r => {
+                    const isActive = activeCodes.find(ac => ac.code === r.generated_code)?.is_active || false;
+                    return { ...r, isActive };
                 });
+                
+                updateStats(allRequests);
+                renderList(allRequests);
             } else { list.innerHTML = '<p>لا توجد بيانات.</p>'; }
+        }
+
+        // [39] & [40] Filter Logic
+        function filterData() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filter = document.getElementById('filterSelect').value;
+
+            const filtered = allRequests.filter(r => {
+                const matchesSearch = r.user_data.toLowerCase().includes(search) || r.generated_code.toLowerCase().includes(search);
+                const matchesFilter = filter === 'all' ? true : (filter === 'active' ? r.isActive : !r.isActive);
+                return matchesSearch && matchesFilter;
+            });
+            renderList(filtered);
+        }
+
+        function renderList(data) {
+            const list = document.getElementById('requestsList'); list.innerHTML = '';
+            data.forEach(r => {
+                const ipMatch = r.user_data.match(/IP: ([\d\.]+)/);
+                const userIP = ipMatch ? ipMatch[1] : 'Unknown';
+                const d = new Date(r.created_at).toLocaleString('ar-EG');
+                
+                // [47] Device Info extraction (simplified)
+                const device = r.device_info ? (r.device_info.includes('Mobile') ? '📱 Mobile' : '💻 PC') : 'Unknown';
+                const country = r.country_code || 'UNK';
+
+                const div = document.createElement('div');
+                div.className = `request-card ${r.isActive ? '' : 'pending'}`;
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; color:#666; font-size:0.8rem;">
+                        <span>${d}</span>
+                        <span>IP: ${userIP} [${country}] | ${device}</span>
+                    </div>
+                    <div style="background:#111; padding:10px; margin:10px 0; color:#fff; white-space:pre-wrap;">${r.user_data}</div>
+                    
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="color:${r.isActive ? '#0f0' : 'orange'}">${r.isActive ? '● مفعل' : '○ معلق'}</span>
+                        <code style="font-size:1.2rem; font-weight:bold; color:#fff;">${r.generated_code}</code>
+                        <button onclick="editCode('${r.generated_code}', ${r.id})" style="width:auto; padding:2px 8px; font-size:0.7rem;">✏️ [49]</button>
+                    </div>
+
+                    <input type="text" placeholder="ملاحظات الأدمن [42]..." value="${r.admin_note || ''}" 
+                           onblur="saveNote(${r.id}, this.value)" 
+                           style="margin-top:10px; padding:5px; background:#222; border:1px solid #444; color:#aaa;">
+
+                    <div style="margin-top:15px; border-top:1px dashed #333; padding-top:10px;">
+                        ${!r.isActive ? `<button class="action-btn activate-btn" onclick="activateCode('${r.generated_code}', ${r.id})">✅ تفعيل ($)</button>` : ''}
+                        <button class="action-btn ban-btn" onclick="banUser('${userIP}')">🚫 حظر</button>
+                        <button class="action-btn delete-btn" onclick="deleteRequest(${r.id})">🗑️ حذف</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function updateStats(data) {
+            // Money
+            const totalRev = data.reduce((sum, r) => sum + (r.revenue || 0), 0);
+            document.getElementById('totalRevenue').innerText = '$' + totalRev;
+            document.getElementById('totalCount').innerText = data.length;
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('todayCount').innerText = data.filter(r => r.created_at.startsWith(today)).length;
+
+            // [81] Weekly Chart Data
+            const ctx1 = document.getElementById('weeklyChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: { labels: ['A', 'B', 'C', 'D', 'E'], datasets: [{ label: 'الطلبات', data: [5, 12, 19, 3, 5], borderColor: '#0f0', tension: 0.1 }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // [82] System Pie Chart
+            const sysCounts = { '1x':0, 'm':0, 'l':0 };
+            data.forEach(r => { if(r.user_data.includes('1x')) sysCounts['1x']++; else if(r.user_data.includes('m')) sysCounts['m']++; else sysCounts['l']++; });
+            
+            const ctx2 = document.getElementById('systemChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: { labels: ['1xBet', 'Melbet', 'Linebet'], datasets: [{ data: [sysCounts['1x'], sysCounts['m'], sysCounts['l']], backgroundColor: ['#00f', '#fa0', '#0f0'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
         }
     </script>
 </body>
