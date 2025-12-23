@@ -8,6 +8,25 @@
     <style>.container { max-width: 900px; }</style>
 </head>
 <body>
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="confirmTitle">[ CONFIRM_ACTION ]</div>
+            <div class="modal-msg" id="confirmMsg">...</div>
+            <div class="modal-actions">
+                <button class="modal-btn" id="confirmOkBtn">نعم</button>
+                <button class="modal-btn cancel" onclick="closeConfirm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="alertTitle">[ ADMIN_MSG ]</div>
+            <div class="modal-msg" id="alertMsg">...</div>
+            <div class="modal-actions"><button class="modal-btn" onclick="closeAlert()">موافق</button></div>
+        </div>
+    </div>
+
     <div class="container">
         <div id="adminLogin">
             <h2 id="typewriterTitle"></h2>
@@ -38,24 +57,31 @@
         function typeWriter(text, elementId) { let i = 0; const target = document.getElementById(elementId); target.innerHTML = ""; function type() { if (i < text.length) { target.innerHTML += text.charAt(i); i++; setTimeout(type, 50); } } type(); }
         window.onload = () => typeWriter("دخول المشرف (ROOT)", "typewriterTitle");
 
+        // دوال المودال
+        function showAlert(title, msg) { document.getElementById('alertTitle').innerText = title; document.getElementById('alertMsg').innerText = msg; document.getElementById('alertModal').classList.add('active'); }
+        function closeAlert() { document.getElementById('alertModal').classList.remove('active'); }
+        let confirmCallback = null;
+        function showConfirm(title, msg, callback) { document.getElementById('confirmTitle').innerText = title; document.getElementById('confirmMsg').innerText = msg; confirmCallback = callback; document.getElementById('confirmModal').classList.add('active'); }
+        function closeConfirm() { document.getElementById('confirmModal').classList.remove('active'); }
+        document.getElementById('confirmOkBtn').onclick = () => { if(confirmCallback) confirmCallback(); closeConfirm(); };
+
         const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.getElementById('authBtn').addEventListener('click', () => {
             const e = document.getElementById('adminEmail').value; const p = document.getElementById('adminPass').value;
-            if(e === "mm@mm.mm" && p === "mm023123") { document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); loadData(); } else { alert("بيانات خاطئة!"); }
+            if(e === "mm@mm.mm" && p === "mm023123") { document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); loadData(); } else { showAlert("❌ خطأ", "بيانات خاطئة!"); }
         });
 
-        // زر التفعيل الجديد
         async function activateCode(code) {
-            if(!confirm("تفعيل هذا الكود؟")) return;
-            const { error } = await _supabase.from('active_codes').update({ is_active: true }).eq('code', code);
-            if(error) alert("خطأ!"); else { alert("تم التفعيل ✅"); }
+            showConfirm("تفعيل الكود", "هل تريد تفعيل الكود لهذا المستخدم؟", async () => {
+                const { error } = await _supabase.from('active_codes').update({ is_active: true }).eq('code', code);
+                if(error) showAlert("خطأ", "فشل التفعيل."); else showAlert("نجاح ✅", "تم تفعيل الكود بنجاح.");
+            });
         }
-
-        async function banUser(ip) { if(!confirm(`حظر ${ip}؟`)) return; const { error } = await _supabase.from('banned_ips').insert([{ ip: ip }]); if(error) alert("خطأ!"); else { alert("تم الحظر 🚫"); loadData(); } }
-        async function deleteRequest(id) { if(!confirm("حذف؟")) return; await _supabase.from('requests').delete().eq('id', id); loadData(); }
+        async function banUser(ip) { showConfirm("حظر IP", `حظر ${ip} نهائياً؟`, async () => { const { error } = await _supabase.from('banned_ips').insert([{ ip: ip }]); if(error) showAlert("خطأ", "فشل الحظر."); else { showAlert("تم", "تم الحظر 🚫"); loadData(); } }); }
+        async function deleteRequest(id) { showConfirm("حذف", "حذف السجل نهائياً؟", async () => { await _supabase.from('requests').delete().eq('id', id); loadData(); }); }
 
         async function loadData() {
             const list = document.getElementById('requestsList'); list.innerHTML = 'جاري التحميل...';
@@ -67,7 +93,6 @@
                 document.getElementById('bannedCount').innerText = bannedCount || 0;
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('todayCount').innerText = requests.filter(r => r.created_at.startsWith(today)).length;
-
                 list.innerHTML = '';
                 requests.forEach(r => {
                     const ipMatch = r.user_data.match(/IP: ([\d\.]+)/);
