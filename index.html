@@ -6,12 +6,13 @@
     <title>بوابة الدخول</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body style="display:none;" id="bodyContent"> <div class="container">
+<body style="display:none;" id="bodyContent">
+    <div class="container">
         <h2>نظام الوصول المؤمن</h2>
         <p style="color: #888; margin-bottom: 20px;">>> أدخل مفتاح الوصول للمتابعة...</p>
         <input type="text" id="accessCode" placeholder="XX-XXXX-XX" style="text-align: center; font-weight: bold; font-family:'Fira Code'; letter-spacing:2px;">
         <button id="loginBtn">بدء الاتصال</button>
-        <button class="action-btn" onclick="window.location.href='create.html'" style="width:100%; border-color:#555; color:#888;">طلب مفتاح جديد</button>
+        <button class="secondary-btn" onclick="window.location.href='create.html'" style="width:100%; border-radius:4px;">طلب مفتاح جديد</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,6 +21,7 @@
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // فحص الحظر
         async function checkBan() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
@@ -28,7 +30,7 @@
                 
                 if (banned && banned.length > 0) {
                     document.body.style.display = 'flex';
-                    document.body.innerHTML = `<h1 style="color:red; font-size:3rem;">🚫 BLOCKED</h1>`;
+                    document.body.innerHTML = `<h1 style="color:red; font-size:3rem; text-shadow:0 0 10px red;">🚫 BLOCKED</h1>`;
                 } else {
                     document.body.style.display = 'flex';
                 }
