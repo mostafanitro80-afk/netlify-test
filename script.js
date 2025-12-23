@@ -1,101 +1,157 @@
-// بيانات الأدمن الثابتة
-const ADMIN_EMAIL = "admin@admin.com";
-const ADMIN_PASS = "admin1235";
+/* script.js */
 
-// استرجاع المستخدمين من الذاكرة المحلية أو إنشاء مصفوفة فارغة
-let usersDB = JSON.parse(localStorage.getItem('siteUsers')) || [];
+// ==========================================
+// 1. ضع إعدادات فايربيس الخاصة بك هنا
+// ==========================================
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+};
 
-// دالة التبديل بين الواجهات
-function switchView(viewId) {
-    document.querySelectorAll('.container > div').forEach(div => {
-        div.classList.add('hidden-section');
-        div.classList.remove('active-section');
-    });
-    document.getElementById(viewId).classList.remove('hidden-section');
-    document.getElementById(viewId).classList.add('active-section');
+// تهيئة Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ==========================================
+// 2. وظائف صفحة إنشاء الكود
+// ==========================================
+
+// دالة لتحويل الصورة إلى نص (Base64) لتخزينها بسهولة
+const toBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+});
+
+async function submitRequest() {
+    const userData = document.getElementById('userData').value;
+    const regProofFile = document.getElementById('regProof').files[0];
+    const depProofFile = document.getElementById('depProof').files[0];
+    const btn = document.getElementById('submitBtn');
+
+    if (!userData || !regProofFile || !depProofFile) {
+        alert("يرجى ملء الخانة ورفع الصورتين");
+        return;
+    }
+
+    // توليد كود عشوائي
+    const generatedCode = 'CODE-' + Math.floor(100000 + Math.random() * 900000);
+
+    btn.innerText = "جاري المعالجة...";
+    btn.disabled = true;
+
+    try {
+        // تحويل الصور لنصوص للتخزين
+        const regBase64 = await toBase64(regProofFile);
+        const depBase64 = await toBase64(depProofFile);
+
+        // حفظ البيانات في Firebase
+        await db.collection("requests").add({
+            userData: userData,
+            registrationProof: regBase64,
+            depositProof: depBase64,
+            generatedCode: generatedCode,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // إظهار النتيجة للمستخدم
+        document.getElementById('codeDisplay').classList.remove('hidden');
+        document.getElementById('generatedCode').innerText = generatedCode;
+        
+        // حفظ الكود في قاعدة البيانات لغرض التحقق لاحقاً
+        await db.collection("active_codes").add({
+            code: generatedCode,
+            used: false
+        });
+
+        btn.style.display = 'none';
+
+    } catch (error) {
+        console.error("Error: ", error);
+        alert("حدث خطأ، تأكد من الاتصال بالإنترنت");
+        btn.innerText = "إنشاء الكود";
+        btn.disabled = false;
+    }
 }
 
-function showRegister() { switchView('register-section'); }
-function showLogin() { switchView('login-section'); }
+// ==========================================
+// 3. وظائف صفحة تسجيل الدخول
+// ==========================================
+async function login() {
+    const code = document.getElementById('accessCode').value.trim();
+    if (!code) return;
 
-// دالة إنشاء حساب جديد
-function register() {
-    const email = document.getElementById('reg-email').value;
-    const pass = document.getElementById('reg-pass').value;
+    try {
+        // البحث عن الكود في قاعدة البيانات
+        const snapshot = await db.collection("active_codes").where("code", "==", code).get();
 
-    if (!email || !pass) {
-        alert("الرجاء ملء جميع الحقول");
-        return;
+        if (!snapshot.empty) {
+            localStorage.setItem('isLoggedIn', 'true');
+            window.location.href = 'app.html';
+        } else {
+            alert("الكود غير صحيح");
+        }
+    } catch (error) {
+        console.log(error);
+        // في حالة لم تقم بإعداد فايربيس بشكل صحيح، هذا كود احتياطي للتجربة فقط
+        if(code.startsWith("CODE-")) {
+            localStorage.setItem('isLoggedIn', 'true');
+            window.location.href = 'app.html';
+        } else {
+            alert("تأكد من إعدادات قاعدة البيانات");
+        }
     }
-
-    // التحقق مما إذا كان البريد مستخدم سابقاً
-    const exists = usersDB.find(user => user.email === email);
-    if (exists) {
-        alert("هذا البريد مسجل بالفعل!");
-        return;
-    }
-
-    // حفظ المستخدم
-    usersDB.push({ email: email, password: pass });
-    localStorage.setItem('siteUsers', JSON.stringify(usersDB));
-    
-    alert("تم إنشاء الحساب بنجاح! قم بتسجيل الدخول الآن.");
-    showLogin();
 }
 
-// دالة تسجيل الدخول
-function login() {
-    const email = document.getElementById('login-email').value;
-    const pass = document.getElementById('login-pass').value;
+// ==========================================
+// 4. وظائف صفحة الأدمن
+// ==========================================
+function adminAuth() {
+    const email = document.getElementById('adminEmail').value;
+    const pass = document.getElementById('adminPass').value;
 
-    // 1. التحقق من الأدمن
-    if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-        loadAdminPanel();
-        switchView('admin-dashboard');
-        return;
-    }
-
-    // 2. التحقق من المستخدمين العاديين
-    const user = usersDB.find(u => u.email === email && u.password === pass);
-    
-    if (user) {
-        switchView('user-dashboard');
+    if (email === "mazen@admin.com" && pass === "mazen250999") {
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        loadRequests();
     } else {
-        alert("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+        alert("بيانات الدخول غير صحيحة");
     }
 }
 
-// دالة توليد رقم عشوائي (1.00 - 30.60)
-function generateNumber() {
-    const min = 1.00;
-    const max = 30.60;
-    // معادلة لتوليد رقم عشوائي بكسور عشرية
-    const randomNum = (Math.random() * (max - min) + min).toFixed(2);
-    
-    document.getElementById('random-number-display').innerText = randomNum;
-}
+function loadRequests() {
+    const list = document.getElementById('requestsList');
+    list.innerHTML = '';
 
-// دالة تحميل لوحة الأدمن
-function loadAdminPanel() {
-    const list = document.getElementById('users-list');
-    list.innerHTML = ""; // مسح القائمة الحالية
+    db.collection("requests").orderBy("timestamp", "desc").get().then((querySnapshot) => {
+        if(querySnapshot.empty) {
+            list.innerHTML = "<p>لا توجد طلبات حالياً</p>";
+            return;
+        }
 
-    if (usersDB.length === 0) {
-        list.innerHTML = "<li>لا يوجد مستخدمين مسجلين حتى الآن.</li>";
-        return;
-    }
-
-    usersDB.forEach((user, index) => {
-        const li = document.createElement('li');
-        li.textContent = `${index + 1}. البريد: ${user.email} | كلمة المرور: ${user.password}`;
-        list.appendChild(li);
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const item = document.createElement('div');
+            item.className = 'request-item';
+            item.innerHTML = `
+                <p><strong>البيانات:</strong> ${data.userData}</p>
+                <p><strong>الكود المولد:</strong> <span style="color:#4caf50">${data.generatedCode}</span></p>
+                <div>
+                    <p>الصور:</p>
+                    <a href="${data.registrationProof}" target="_blank"><img src="${data.registrationProof}" title="دليل التسجيل"></a>
+                    <a href="${data.depositProof}" target="_blank"><img src="${data.depositProof}" title="دليل الإيداع"></a>
+                </div>
+                <small>${new Date(data.timestamp.seconds * 1000).toLocaleString()}</small>
+            `;
+            list.appendChild(item);
+        });
+    }).catch((error) => {
+        list.innerHTML = "<p>حدث خطأ في جلب البيانات، تأكد من إعدادات Firebase Rules</p>";
+        console.error(error);
     });
-}
-
-// تسجيل الخروج
-function logout() {
-    document.getElementById('login-email').value = "";
-    document.getElementById('login-pass').value = "";
-    document.getElementById('random-number-display').innerText = "0.00";
-    showLogin();
 }
