@@ -1,12 +1,12 @@
-/* style.css - Ultra Hacker Theme (Final Version) */
+/* style.css - Ultra Hacker Theme (Enhanced Background) */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
 :root {
-    --bg-color: #020202;
-    --panel-bg: rgba(10, 10, 10, 0.9);
-    --hacker-green: #00ff41;  /* أخضر ماتريكس */
-    --hacker-dim: rgba(0, 255, 65, 0.1);
+    --bg-color: #010101;       /* أسود عميق */
+    --panel-bg: rgba(10, 10, 10, 0.95);
+    --hacker-green: #00ff41;   /* أخضر هاكر */
+    --hacker-dim: rgba(0, 255, 65, 0.08);
     --text-color: #e0e0e0;
     --border-glow: 0 0 10px var(--hacker-green);
 }
@@ -21,25 +21,43 @@ body {
     display: flex; justify-content: center; align-items: center;
     min-height: 100vh; direction: rtl;
     overflow-x: hidden;
-    
-    /* خلفية الشبكة المتحركة */
-    background-image: 
+    position: relative;
+
+    /* الطبقة الأولى: شبكة ثابتة خفيفة + إضاءة مركزية */
+    background-image:
         linear-gradient(var(--hacker-dim) 1px, transparent 1px),
-        linear-gradient(90deg, var(--hacker-dim) 1px, transparent 1px);
-    background-size: 30px 30px;
-    animation: gridMove 20s linear infinite;
+        linear-gradient(90deg, var(--hacker-dim) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(0, 255, 65, 0.15) 0%, transparent 80%);
+    background-size: 40px 40px, 40px 40px, 100% 100%;
+    background-position: center;
 }
 
-/* حركة الخلفية */
-@keyframes gridMove {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 600px; }
+/* الطبقة الثانية: تأثير تدفق البيانات (Data Flow) */
+body::before {
+    content: "";
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: -1;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 255, 65, 0.05) 50%, transparent 100%);
+    background-size: 100% 200%;
+    animation: dataFlow 12s linear infinite;
+    opacity: 0.8;
 }
 
-/* تأثير خطوط الشاشة (Scanlines) */
+@keyframes dataFlow {
+    0% { background-position: 0 -200%; }
+    100% { background-position: 0 0; }
+}
+
+/* الطبقة الثالثة: خطوط الشاشة (Scanlines) المحسنة */
 body::after {
     content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 3px
+    );
     pointer-events: none; z-index: 999;
 }
 
@@ -47,20 +65,20 @@ body::after {
     background-color: var(--panel-bg);
     padding: 2.5rem;
     border: 1px solid var(--hacker-green);
-    box-shadow: 0 0 20px var(--hacker-dim);
-    border-radius: 5px;
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.1);
+    border-radius: 8px;
     width: 90%;
     max-width: 480px;
     text-align: center;
     position: relative;
-    backdrop-filter: blur(5px);
-    animation: slideUp 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    backdrop-filter: blur(10px);
+    animation: slideUp 0.7s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
 .container.wide-mode { max-width: 850px; }
 
 @keyframes slideUp {
-    from { transform: translateY(50px); opacity: 0; }
+    from { transform: translateY(40px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 
@@ -69,16 +87,15 @@ h2 {
     font-weight: 900; text-transform: uppercase;
     text-shadow: 0 0 10px var(--hacker-green);
     border-bottom: 2px solid #333; padding-bottom: 15px;
-    letter-spacing: 1px;
 }
 
 label.title {
     display: block; text-align: right; margin: 15px 0 8px;
     color: var(--hacker-green); font-size: 0.95rem; font-weight: bold;
-    text-shadow: 0 0 5px var(--hacker-dim);
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.2);
 }
 
-/* === خيارات البرامج (تصميم مستطيل مثالي للشعارات) === */
+/* === خيارات البرامج (مستطيلة + شعار كامل) === */
 .program-grid {
     display: flex; justify-content: center; gap: 15px; margin-bottom: 25px;
 }
@@ -86,10 +103,10 @@ label.title {
 .program-option {
     border: 2px solid #333;
     background: #000;
-    padding: 5px; /* هامش بسيط جداً لعدم التصاق اللوجو */
+    padding: 5px; /* هامش داخلي صغير لعدم التصاق الشعار */
     border-radius: 6px;
     cursor: pointer; transition: 0.3s;
-    width: 160px; height: 85px; /* مستطيل عريض */
+    width: 160px; height: 85px; /* مستطيل */
     position: relative; overflow: hidden;
     display: flex; justify-content: center; align-items: center;
 }
@@ -97,25 +114,25 @@ label.title {
 .program-option:hover {
     border-color: #fff;
     box-shadow: 0 0 15px rgba(255,255,255,0.3);
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .program-option.selected {
     border-color: var(--hacker-green);
-    box-shadow: 0 0 25px var(--hacker-green), inset 0 0 10px var(--hacker-green);
+    box-shadow: 0 0 20px var(--hacker-green), inset 0 0 10px rgba(0,255,65,0.1);
 }
 
 .program-option.selected::after {
     content: "✔"; position: absolute; top: -8px; right: -8px;
     background: var(--hacker-green); color: #000;
     width: 25px; height: 25px; border-radius: 50%;
-    display: flex; justify-content: center; align-items: center; 
+    display: flex; justify-content: center; align-items: center;
     font-weight: bold; z-index: 10;
 }
 
 .program-icon {
     width: 100%; height: 100%;
-    object-fit: contain; /* يظهر الشعار بالكامل مهما كان حجمه */
+    object-fit: contain; /* إظهار الشعار بالكامل بدون قص */
     filter: grayscale(100%); transition: 0.3s;
 }
 
@@ -132,8 +149,7 @@ textarea, input[type="text"], input[type="email"], input[type="password"] {
 }
 
 textarea:focus, input:focus {
-    border-color: var(--hacker-green);
-    background: #111;
+    border-color: var(--hacker-green); background: #111;
     box-shadow: 0 0 15px var(--hacker-dim);
 }
 
@@ -154,13 +170,8 @@ button {
     color: var(--hacker-green); font-weight: 900; font-size: 1.1rem;
     cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.2s;
     text-transform: uppercase; letter-spacing: 1px;
-    position: relative; overflow: hidden;
 }
-
-button:hover {
-    background: var(--hacker-green); color: #000;
-    box-shadow: 0 0 30px var(--hacker-green);
-}
+button:hover { background: var(--hacker-green); color: #000; box-shadow: 0 0 25px var(--hacker-green); }
 
 .secondary-btn { border-color: #666; color: #888; }
 .secondary-btn:hover { border-color: var(--hacker-green); color: var(--hacker-green); background: transparent; }
@@ -168,14 +179,13 @@ button:hover {
 /* شاشة التطبيق */
 .monitor-screen {
     background: #000; border: 2px solid #333; padding: 20px;
-    margin: 20px 0; border-radius: 5px; position: relative;
-    box-shadow: inset 0 0 20px #000;
+    margin: 20px 0; border-radius: 5px; box-shadow: inset 0 0 20px #000;
 }
 .big-number {
     font-size: 4rem; color: var(--hacker-green); font-weight: 900;
     text-shadow: 0 0 20px var(--hacker-green); margin: 15px 0; direction: ltr; font-family: 'Fira Code', monospace;
 }
-.progress-bar { width: 100%; height: 6px; background: #222; margin-top: 15px; border-radius: 3px; }
+.progress-bar { width: 100%; height: 6px; background: #222; margin-top: 15px; }
 .progress-fill { height: 100%; background: var(--hacker-green); width: 100%; transition: width 0.1s linear; box-shadow: 0 0 10px var(--hacker-green); }
 
 /* التنبيهات */
@@ -183,7 +193,7 @@ button:hover {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     background: #000; border: 1px solid var(--hacker-green);
     color: var(--hacker-green); padding: 12px 30px; z-index: 1000;
-    opacity: 0; visibility: hidden; transition: 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    opacity: 0; visibility: hidden; transition: 0.4s;
     display: flex; gap: 10px; border-radius: 4px; box-shadow: 0 5px 20px #000;
 }
 .custom-toast.show { top: 60px; opacity: 1; visibility: visible; }
