@@ -1,4 +1,4 @@
-/* style.css - النسخة الكاملة والنهائية (إصلاح اختفاء الأدمن + توسيط الشاشة) */
+/* style.css - النسخة النهائية (تضمين أنميشن اللوجو الاحترافي + إصلاحات Grid) */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
@@ -21,11 +21,10 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     
-    /* === الحل الجذري للمحاذاة === */
+    /* نظام المحاذاة Grid لضمان التوسط التام */
     display: grid;
     place-items: center;
     align-content: center;
-    /* ========================== */
     
     min-height: 100vh; direction: rtl;
     overflow-x: hidden; position: relative;
@@ -38,6 +37,34 @@ body {
 
 @keyframes matrixMove { 0% { background-position: 0 0; } 100% { background-position: 40px 40px; } }
 
+/* === تصميم اللوجو الاحترافي === */
+.pro-logo {
+    width: 130px; /* حجم مناسب */
+    height: auto;
+    display: block;
+    margin: 0 auto 15px auto; /* توسيط ومسافة من الأسفل */
+    filter: drop-shadow(0 0 5px var(--hacker-green));
+    animation: logoFloat 4s ease-in-out infinite, hackerGlow 3s infinite alternate;
+    transition: transform 0.3s;
+}
+
+.pro-logo:hover {
+    transform: scale(1.1) rotate(2deg);
+    filter: drop-shadow(0 0 15px var(--hacker-green));
+}
+
+/* حركة الطفو (Floating) */
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* توهج النيون المتنفس (Breathing Glow) */
+@keyframes hackerGlow {
+    0% { filter: drop-shadow(0 0 2px var(--hacker-green)) brightness(1); }
+    100% { filter: drop-shadow(0 0 12px var(--hacker-green)) brightness(1.2); }
+}
+
 /* تأثير الاهتزاز */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -46,7 +73,7 @@ body {
 }
 .shake-element { animation: shake 0.4s ease-in-out; }
 
-/* تأثير النبض الأخضر */
+/* تأثير النبض للأزرار */
 @keyframes pulse-green {
     0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.4); }
     70% { box-shadow: 0 0 0 10px rgba(0, 255, 65, 0); }
@@ -67,7 +94,7 @@ body::before {
     transition: opacity 1s ease-out;
 }
 .intro-logo {
-    width: 150px; height: auto;
+    width: 180px; height: auto;
     filter: drop-shadow(0 0 15px var(--hacker-green));
     animation: logoPulse 2s infinite ease-in-out;
     margin-bottom: 20px;
@@ -99,8 +126,6 @@ body::before {
     text-align: center; position: relative;
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1); z-index: 1;
-    
-    /* تم حذف display: none من هنا ليظهر الأدمن */
 }
 
 .container.wide-mode { max-width: 900px; }
@@ -170,7 +195,7 @@ textarea:focus, input:focus {
 .modal-btn.cancel { border-color: var(--danger-red); color: var(--danger-red); }
 .modal-btn.cancel:hover { background: var(--danger-red); color: #fff; }
 
-h2 { color: var(--hacker-green); margin-bottom: 30px; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 20px rgba(0, 255, 65, 0.6); letter-spacing: 1.5px; }
+h2 { color: var(--hacker-green); margin-bottom: 20px; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 20px rgba(0, 255, 65, 0.6); letter-spacing: 1.5px; }
 label.title { display: block; text-align: right; margin: 20px 0 10px; color: var(--hacker-green); font-size: 1rem; font-weight: bold; }
 
 .program-grid { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
@@ -224,7 +249,6 @@ button:hover { background: linear-gradient(135deg, #006600, #00cc00); transform:
 .filter-btn { flex: 1; padding: 10px; background: #111; border: 1px solid #444; color: #fff; border-radius: 8px; margin: 0; transition: 0.3s; }
 .filter-btn.active { background: var(--hacker-green); color: #000; font-weight: bold; box-shadow: 0 0 15px rgba(0,255,65,0.3); border-color: var(--hacker-green); }
 
-/* تنسيقات الإضافة اليدوية في الأدمن */
 .manual-add-box { 
     background: #0a0a0a; 
     border: 1px dashed var(--hacker-green); 
