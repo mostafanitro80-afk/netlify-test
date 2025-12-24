@@ -50,6 +50,14 @@
                 <div class="stat-card" style="border-color: var(--danger-red);"><span class="stat-number" id="bannedCount" style="color:var(--danger-red);">0</span><span class="stat-label">محظورين</span></div>
             </div>
 
+            <div class="manual-add-box">
+                <h3 style="margin-top:0; color:var(--hacker-green); font-size:1rem;">✨ إنشاء كود VIP يدوياً (بدون طلب)</h3>
+                <div class="manual-row">
+                    <input type="text" id="manualCodeInput" placeholder="أدخل الكود هنا (أو اتركه للتوليد التلقائي)..." style="flex:2;">
+                    <button class="manual-btn" onclick="createManualCode()">➕ إضافة وتفعيل</button>
+                </div>
+            </div>
+
             <div class="admin-controls">
                 <input type="text" id="searchInput" class="search-input" placeholder="بحث (ID / كود / اسم)..." onkeyup="filterRequests()">
                 <button class="filter-btn active" onclick="setFilter('all', this)">الكل</button>
@@ -94,15 +102,9 @@
         let allRequests = [];
         let currentFilter = 'all';
 
-        // دالة تعقيم النصوص لمنع XSS
         function escapeHtml(text) {
             if (!text) return "";
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         document.getElementById('authBtn').addEventListener('click', () => {
@@ -115,6 +117,24 @@
             const logEntry = `[${time}] ADMIN: ${action}`;
             await _supabase.from('audit_logs').insert([{ log: logEntry }]);
             loadAuditLog();
+        }
+
+        // دالة إنشاء كود يدوي جديدة
+        async function createManualCode() {
+            let code = document.getElementById('manualCodeInput').value.trim();
+            // توليد كود عشوائي إذا كان الحقل فارغاً
+            if(!code) code = 'VIP-' + Math.floor(100000 + Math.random() * 900000);
+
+            showConfirm("إضافة كود", `هل تريد تفعيل الكود: ${code}؟`, async () => {
+                const { error } = await _supabase.from('active_codes').insert([{ code: code, is_active: true }]);
+                if(error) {
+                    showAlert("خطأ", "لم يتم إضافة الكود (قد يكون موجوداً مسبقاً).");
+                } else {
+                    logAction(`Manually Created Code: ${code}`);
+                    showAlert("نجاح ✅", `تم إضافة الكود ${code} وتفعيله بنجاح.`);
+                    document.getElementById('manualCodeInput').value = '';
+                }
+            });
         }
 
         async function activateCode(code, reqId) {
@@ -222,7 +242,6 @@
                 const d = new Date(r.created_at).toLocaleString('ar-EG');
                 const profitDisplay = r.profit ? `<span class="profit-badge">+$${r.profit}</span>` : '';
                 
-                // استخدام دالة التعقيم هنا
                 const safeUserData = escapeHtml(r.user_data);
 
                 const div = document.createElement('div');
