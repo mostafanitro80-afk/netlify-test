@@ -49,7 +49,7 @@
         const INTERVAL = 7000;
         let start = Date.now();
 
-        // دالة توليد الأرقام (تم تعديلها لتسمع كلام الأدمن)
+        // دالة توليد الأرقام (معدلة لتقبل المسافات)
         async function gen() {
             display.style.opacity = 0.5; // تأثير تحميل بسيط
 
@@ -61,13 +61,15 @@
                 
                 if (data && data.mode === 'manual' && data.manual_list) {
                     // === الوضع اليدوي ===
-                    // نحول النص إلى مصفوفة أرقام
-                    const numbersArr = data.manual_list.split(',').map(s => s.trim());
-                    
+                    // التعديل هنا: استخدام Regex لفصل الأرقام بالمسافات أو الفواصل
+                    // [\s,]+ تعني: افصل عند أي مسافة (space/enter) أو فاصلة (comma)
+                    const numbersArr = data.manual_list
+                        .split(/[\s,]+/)             // التقسيم
+                        .map(s => s.trim())          // تنظيف المسافات الزائدة
+                        .filter(s => s !== "");      // إزالة العناصر الفارغة
+
                     if(numbersArr.length > 0) {
-                        // معادلة سحرية لاختيار الرقم بناءً على الوقت الحالي
-                        // هذا يضمن أن كل المستخدمين يرون نفس الرقم في نفس الوقت
-                        // ويتحركون في القائمة بالترتيب كل 7 ثواني
+                        // معادلة التزامن الزمني لضمان نفس الرقم لكل المستخدمين
                         const timeIndex = Math.floor(Date.now() / INTERVAL);
                         const arrIndex = timeIndex % numbersArr.length;
                         finalNumber = numbersArr[arrIndex];
@@ -75,7 +77,7 @@
                         finalNumber = (Math.random() * 29 + 1).toFixed(2);
                     }
                 } else {
-                    // === الوضع العشوائي (القديم) ===
+                    // === الوضع العشوائي ===
                     finalNumber = (Math.random() * 29 + 1).toFixed(2);
                 }
 
