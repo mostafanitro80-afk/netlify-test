@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خطأ 404 | مسار مفقود</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container error-container">
+        <div class="glitch-logo-container">
+            <img src="11zon_cropped.png" alt="Logo" class="pro-logo error-logo">
+        </div>
+
+        <h1 class="glitch-text" data-text="404">404</h1>
+        
+        <div class="error-msg-box">
+            <h3 style="color: var(--danger-red); margin: 0;">[ SYSTEM_ERROR ]</h3>
+            <p>المسار المطلوب غير موجود أو تم حذفه من السيرفر.</p>
+            <p style="font-family: 'Fira Code'; font-size: 0.8rem; color: #666;">ERR_CODE: PAGE_NOT_FOUND</p>
+        </div>
+
+        <button onclick="window.location.href='index'" class="error-btn">
+            العودة للقاعدة الآمنة
+        </button>
+    </div>
+
+    <script>
+        // تأثير صوتي بسيط عند دخول الصفحة (اختياري)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playErrorSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.5);
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        document.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') playErrorSound();
+        });
+        
+        // تأثير حركة الماوس للخلفية
+        document.addEventListener('mousemove', e => { 
+            document.body.style.setProperty('--mouse-x', e.clientX + 'px'); 
+            document.body.style.setProperty('--mouse-y', e.clientY + 'px'); 
+        });
+    </script>
+</body>
+</html>
