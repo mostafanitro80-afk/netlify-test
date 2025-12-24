@@ -72,8 +72,8 @@
                 </div>
 
                 <div id="manualInputDiv" class="hidden">
-                    <p style="color:#aaa; font-size:0.8rem; margin-bottom:5px;">أدخل الأرقام مفصولة بفاصلة (مثال: 1.50, 2.30, 99.00)</p>
-                    <textarea id="manualNumbers" class="control-textarea" placeholder="1.00, 2.00, 3.00..."></textarea>
+                    <p style="color:#aaa; font-size:0.8rem; margin-bottom:5px;">أدخل الأرقام وافصل بينها بمسافة (مثال: 1.50 2.30 99.00)</p>
+                    <textarea id="manualNumbers" class="control-textarea" placeholder="1.00 2.00 3.00..."></textarea>
                 </div>
 
                 <button class="manual-btn" style="border-color:var(--warning-orange); color:var(--warning-orange);" onclick="saveSignalSettings()">💾 حفظ إعدادات الإشارات</button>
@@ -142,7 +142,7 @@
                 document.getElementById('adminPanel').classList.remove('hidden'); 
                 loadData(); 
                 loadAuditLog(); 
-                loadSignalSettings(); // تحميل إعدادات الإشارات
+                loadSignalSettings(); 
             } else { showAlert("❌ خطأ", "بيانات خاطئة!"); }
         });
 
@@ -153,7 +153,7 @@
             loadAuditLog();
         }
 
-        // === دوال التحكم في الإشارات (الجديدة) ===
+        // === دوال التحكم في الإشارات ===
         function toggleSignalInputs() {
             const mode = document.querySelector('input[name="signalMode"]:checked').value;
             const div = document.getElementById('manualInputDiv');
