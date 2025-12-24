@@ -30,6 +30,8 @@
     </div>
 
     <div class="container" id="mainContainer" style="display: none;">
+        <img src="11zon_cropped.png" alt="App Logo" class="pro-logo">
+        
         <h2>نظام الوصول المؤمن</h2>
         <p style="color: #888; margin-bottom: 20px;">>> أدخل مفتاح الوصول للمتابعة...</p>
         
@@ -73,13 +75,13 @@
         setInterval(updateLiveCounter, 3000);
 
         function playIntro() {
-            document.body.style.display = 'grid'; // تغيير هنا أيضاً ليتوافق مع الستايل الجديد
+            document.body.style.display = 'grid'; 
             
             setTimeout(() => {
                 const intro = document.getElementById('introScreen');
                 const main = document.getElementById('mainContainer');
                 intro.classList.add('fade-out');
-                main.style.display = 'block'; // إظهار الكونتينر بعد الانترو
+                main.style.display = 'block'; 
                 setTimeout(() => { intro.remove(); }, 1000);
             }, 3000);
         }
