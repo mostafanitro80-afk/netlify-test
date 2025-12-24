@@ -38,6 +38,11 @@
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // هذا الكود يضمن ظهور الصفحة
+        window.onload = function() {
+            document.querySelector('.container').classList.add('ui-visible');
+        };
+
         if (!localStorage.getItem('isLoggedIn')) window.location.href = 'index'; 
 
         setInterval(() => {
@@ -49,27 +54,21 @@
         const INTERVAL = 7000;
         let start = Date.now();
 
-        // دالة توليد الأرقام (معدلة لتقبل المسافات)
         async function gen() {
-            display.style.opacity = 0.5; // تأثير تحميل بسيط
+            display.style.opacity = 0.5;
 
             let finalNumber = "1.00";
 
             try {
-                // جلب الإعدادات من الأدمن
                 const { data, error } = await _supabase.from('settings').select('*').eq('id', 1).single();
                 
                 if (data && data.mode === 'manual' && data.manual_list) {
-                    // === الوضع اليدوي ===
-                    // التعديل هنا: استخدام Regex لفصل الأرقام بالمسافات أو الفواصل
-                    // [\s,]+ تعني: افصل عند أي مسافة (space/enter) أو فاصلة (comma)
                     const numbersArr = data.manual_list
-                        .split(/[\s,]+/)             // التقسيم
-                        .map(s => s.trim())          // تنظيف المسافات الزائدة
-                        .filter(s => s !== "");      // إزالة العناصر الفارغة
+                        .split(/[\s,]+/)
+                        .map(s => s.trim())
+                        .filter(s => s !== "");
 
                     if(numbersArr.length > 0) {
-                        // معادلة التزامن الزمني لضمان نفس الرقم لكل المستخدمين
                         const timeIndex = Math.floor(Date.now() / INTERVAL);
                         const arrIndex = timeIndex % numbersArr.length;
                         finalNumber = numbersArr[arrIndex];
@@ -77,7 +76,6 @@
                         finalNumber = (Math.random() * 29 + 1).toFixed(2);
                     }
                 } else {
-                    // === الوضع العشوائي ===
                     finalNumber = (Math.random() * 29 + 1).toFixed(2);
                 }
 
@@ -86,7 +84,6 @@
                 finalNumber = (Math.random() * 29 + 1).toFixed(2);
             }
 
-            // عرض الرقم مع أنميشن بسيط
             display.style.opacity = 0;
             setTimeout(() => { 
                 display.innerText = finalNumber; 
@@ -109,8 +106,8 @@
             window.location.href = 'index'; 
         }
 
-        gen(); // تشغيل أولي
-        requestAnimationFrame(loop); // تشغيل الحلقة
+        gen();
+        requestAnimationFrame(loop);
     </script>
 </body>
 </html>
