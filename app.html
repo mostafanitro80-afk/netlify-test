@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>وحدة التحليل</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="live-counter" id="liveCounter" style="top:10px; right:10px;">Live: ...</div>
@@ -33,7 +34,11 @@
     </div>
 
     <script>
-        if (!localStorage.getItem('isLoggedIn')) window.location.href = 'index'; // الرابط بدون .html
+        const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        if (!localStorage.getItem('isLoggedIn')) window.location.href = 'index'; 
 
         setInterval(() => {
             document.getElementById('liveCounter').innerText = `Live: ${Math.floor(Math.random() * 50) + 300}`;
@@ -44,10 +49,48 @@
         const INTERVAL = 7000;
         let start = Date.now();
 
-        function gen() {
-            let n = (Math.random() * 29 + 1).toFixed(2);
+        // دالة توليد الأرقام (تم تعديلها لتسمع كلام الأدمن)
+        async function gen() {
+            display.style.opacity = 0.5; // تأثير تحميل بسيط
+
+            let finalNumber = "1.00";
+
+            try {
+                // جلب الإعدادات من الأدمن
+                const { data, error } = await _supabase.from('settings').select('*').eq('id', 1).single();
+                
+                if (data && data.mode === 'manual' && data.manual_list) {
+                    // === الوضع اليدوي ===
+                    // نحول النص إلى مصفوفة أرقام
+                    const numbersArr = data.manual_list.split(',').map(s => s.trim());
+                    
+                    if(numbersArr.length > 0) {
+                        // معادلة سحرية لاختيار الرقم بناءً على الوقت الحالي
+                        // هذا يضمن أن كل المستخدمين يرون نفس الرقم في نفس الوقت
+                        // ويتحركون في القائمة بالترتيب كل 7 ثواني
+                        const timeIndex = Math.floor(Date.now() / INTERVAL);
+                        const arrIndex = timeIndex % numbersArr.length;
+                        finalNumber = numbersArr[arrIndex];
+                    } else {
+                        finalNumber = (Math.random() * 29 + 1).toFixed(2);
+                    }
+                } else {
+                    // === الوضع العشوائي (القديم) ===
+                    finalNumber = (Math.random() * 29 + 1).toFixed(2);
+                }
+
+            } catch (err) {
+                console.error("Connection Error, falling back to random", err);
+                finalNumber = (Math.random() * 29 + 1).toFixed(2);
+            }
+
+            // عرض الرقم مع أنميشن بسيط
             display.style.opacity = 0;
-            setTimeout(() => { display.innerText = n; display.style.opacity = 1; }, 100);
+            setTimeout(() => { 
+                display.innerText = finalNumber; 
+                display.style.opacity = 1; 
+            }, 200);
+
             start = Date.now();
         }
 
@@ -61,11 +104,11 @@
 
         function logout() {
             localStorage.removeItem('isLoggedIn');
-            window.location.href = 'index'; // الرابط بدون .html
+            window.location.href = 'index'; 
         }
 
-        gen();
-        requestAnimationFrame(loop);
+        gen(); // تشغيل أولي
+        requestAnimationFrame(loop); // تشغيل الحلقة
     </script>
 </body>
 </html>
