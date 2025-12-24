@@ -99,22 +99,37 @@
         async function checkBan() {
             document.getElementById('loadingOverlay').classList.add('active');
             try {
-                const res = await fetch('https://api.ipify.org?format=json');
+                // إضافة timeout لتجنب التعليق إذا كانت الخدمة محظورة
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
                 const data = await res.json();
                 userIP = data.ip;
                 const { data: banned } = await _supabase.from('banned_ips').select('*').eq('ip', userIP);
+                
                 if (banned && banned.length > 0) {
                     document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:red;flex-direction:column;text-align:center;"><h1 style="font-size:4rem;text-shadow:0 0 20px red;">🚫 ACCESS DENIED</h1><p>BANNED IP: ${userIP}</p></div>`;
                 } else {
-                    document.getElementById('loadingOverlay').classList.remove('active');
-                    document.getElementById('mainContainer').style.display = 'block';
-                    typeWriter("إنشاء كود جديد مجانا //", "typewriterTitle");
+                    showMainContent();
                 }
             } catch (e) {
-                document.getElementById('loadingOverlay').classList.remove('active');
-                document.getElementById('mainContainer').style.display = 'block';
+                console.log("Check skipped or failed", e);
+                showMainContent();
             }
         }
+
+        function showMainContent() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+            const container = document.getElementById('mainContainer');
+            container.style.display = 'block';
+            // هذا السطر هو الحل لمشكلة الاختفاء
+            setTimeout(() => container.classList.add('ui-visible'), 50);
+            typeWriter("إنشاء كود جديد مجانا //", "typewriterTitle");
+        }
+
         window.onload = checkBan;
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -147,7 +162,6 @@
             toggleLoading(true, "جاري إنشاء الكود...");
 
             try {
-                // تسريع العملية برفع الصورتين في نفس الوقت (Parallel Upload)
                 const [regUrl, depUrl] = await Promise.all([
                     uploadImage(regFile),
                     uploadImage(depFile)
