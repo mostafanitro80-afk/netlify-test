@@ -1,4 +1,4 @@
-/* style.css - النسخة النهائية (بدون زر لصق + انترو لوجو) */
+/* style.css - النسخة النهائية (تم إصلاح المسافات وإضافة تنسيقات الأدمن الجديد) */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
@@ -120,7 +120,14 @@ body::before {
 .telegram-float:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 0 35px #24A1DE; }
 .telegram-float svg { width: 28px; height: 28px; fill: #fff; }
 
-.input-wrapper { position: relative; width: 100%; margin-bottom: 0; }
+/* === التعديل هنا: تثبيت مكان الإدخال === */
+.input-wrapper { 
+    position: relative; 
+    width: 100%; 
+    margin-bottom: 25px; /* زيادة المسافة لمنع التداخل */
+    display: flex;
+    justify-content: center;
+}
 
 textarea, input {
     width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #333; 
@@ -181,7 +188,7 @@ button {
     border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
     position: relative; overflow: hidden;
 }
-button:not(.secondary-btn):not(.action-btn):not(.modal-btn):not(.filter-btn):not(.paste-btn) { animation: pulse-green 3s infinite; }
+button:not(.secondary-btn):not(.action-btn):not(.modal-btn):not(.filter-btn):not(.paste-btn):not(.manual-btn) { animation: pulse-green 3s infinite; }
 button:hover { background: linear-gradient(135deg, #006600, #00cc00); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 255, 65, 0.4); }
 
 .copy-btn { background: #111; color: var(--hacker-green); border: 1px solid var(--hacker-green); padding: 5px 15px; width: auto; display: inline-block; border-radius: 6px; margin-top: 10px; }
@@ -210,3 +217,23 @@ button:hover { background: linear-gradient(135deg, #006600, #00cc00); transform:
 .search-input { flex: 2; border-radius: 8px; border: 1px solid #444; }
 .filter-btn { flex: 1; padding: 10px; background: #111; border: 1px solid #444; color: #fff; border-radius: 8px; margin: 0; transition: 0.3s; }
 .filter-btn.active { background: var(--hacker-green); color: #000; font-weight: bold; box-shadow: 0 0 15px rgba(0,255,65,0.3); border-color: var(--hacker-green); }
+
+/* تنسيقات الإضافة اليدوية في الأدمن */
+.manual-add-box { 
+    background: #0a0a0a; 
+    border: 1px dashed var(--hacker-green); 
+    padding: 15px; 
+    margin-bottom: 25px; 
+    border-radius: 8px; 
+}
+.manual-row { display: flex; gap: 10px; align-items: center; }
+.manual-btn { 
+    margin: 0; 
+    flex: 1; 
+    padding: 16px; 
+    background: #222; 
+    border: 1px solid var(--hacker-green); 
+    color: var(--hacker-green);
+    animation: none;
+}
+.manual-btn:hover { background: var(--hacker-green); color: #000; }
