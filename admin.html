@@ -51,13 +51,13 @@
             </div>
 
             <div class="manual-add-box">
-                <h3 style="margin-top:0; color:var(--hacker-green); font-size:1rem;">✨ إنشاء كود VIP يدوياً (بدون طلب)</h3>
+                <h3 style="margin-top:0; color:var(--hacker-green); font-size:1.1rem;">✨ إنشاء حساب VIP يدوياً</h3>
+                <p style="color:#666; font-size:0.8rem; margin-bottom:10px;">قم بكتابة كود مخصص أو اتركه فارغاً للتوليد التلقائي.</p>
                 <div class="manual-row">
-                    <input type="text" id="manualCodeInput" placeholder="أدخل الكود هنا (أو اتركه للتوليد التلقائي)..." style="flex:2;">
+                    <input type="text" id="manualCodeInput" placeholder="أدخل الكود هنا (اختياري)..." style="flex:2;">
                     <button class="manual-btn" onclick="createManualCode()">➕ إضافة وتفعيل</button>
                 </div>
             </div>
-
             <div class="admin-controls">
                 <input type="text" id="searchInput" class="search-input" placeholder="بحث (ID / كود / اسم)..." onkeyup="filterRequests()">
                 <button class="filter-btn active" onclick="setFilter('all', this)">الكل</button>
