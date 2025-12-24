@@ -29,7 +29,7 @@
         </div>
     </div>
 
-    <div class="container" id="mainContainer">
+    <div class="container" id="mainContainer" style="display: none;">
         <h2>نظام الوصول المؤمن</h2>
         <p style="color: #888; margin-bottom: 20px;">>> أدخل مفتاح الوصول للمتابعة...</p>
         
@@ -72,25 +72,16 @@
         }
         setInterval(updateLiveCounter, 3000);
 
-        // دالة تشغيل الانترو
         function playIntro() {
-            document.body.style.display = 'block'; // إظهار البودي
+            document.body.style.display = 'grid'; // تغيير هنا أيضاً ليتوافق مع الستايل الجديد
             
             setTimeout(() => {
                 const intro = document.getElementById('introScreen');
                 const main = document.getElementById('mainContainer');
-                
-                // بدء اختفاء الانترو
                 intro.classList.add('fade-out');
-                
-                // إظهار المحتوى الرئيسي
-                main.style.display = 'block';
-                
-                // حذف الانترو من الدوم بعد انتهاء الحركة
-                setTimeout(() => {
-                    intro.remove();
-                }, 1000);
-            }, 3000); // مدة الانترو 3 ثواني
+                main.style.display = 'block'; // إظهار الكونتينر بعد الانترو
+                setTimeout(() => { intro.remove(); }, 1000);
+            }, 3000);
         }
 
         async function checkBan() {
@@ -104,10 +95,7 @@
                     document.body.innerHTML = `<h1 style="color:red; text-align:center; margin-top:20%;">🚫 BLOCKED</h1>`; 
                     document.body.style.display='block'; 
                 }
-                else { 
-                    // إذا لم يكن محظوراً، شغل الانترو
-                    playIntro();
-                }
+                else { playIntro(); }
             } catch (e) { playIntro(); }
         }
         window.onload = checkBan;
