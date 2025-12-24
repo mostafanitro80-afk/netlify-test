@@ -1,4 +1,4 @@
-/* style.css - النسخة النهائية (تضمين أنميشن اللوجو الاحترافي + إصلاحات Grid) */
+/* style.css - النسخة النهائية (تضمين أنميشن اللوجو الاحترافي + إصلاحات Grid + صفحة 404) */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
 
@@ -219,7 +219,7 @@ button {
     border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
     position: relative; overflow: hidden;
 }
-button:not(.secondary-btn):not(.action-btn):not(.modal-btn):not(.filter-btn):not(.paste-btn):not(.manual-btn) { animation: pulse-green 3s infinite; }
+button:not(.secondary-btn):not(.action-btn):not(.modal-btn):not(.filter-btn):not(.paste-btn):not(.manual-btn):not(.error-btn) { animation: pulse-green 3s infinite; }
 button:hover { background: linear-gradient(135deg, #006600, #00cc00); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 255, 65, 0.4); }
 
 .copy-btn { background: #111; color: var(--hacker-green); border: 1px solid var(--hacker-green); padding: 5px 15px; width: auto; display: inline-block; border-radius: 6px; margin-top: 10px; }
@@ -268,3 +268,104 @@ button:hover { background: linear-gradient(135deg, #006600, #00cc00); transform:
     animation: none;
 }
 .manual-btn:hover { background: var(--hacker-green); color: #000; }
+
+/* ==========================================================
+   404 ERROR PAGE STYLES - تنسيقات صفحة الخطأ
+   ========================================================== */
+
+.error-container {
+    border-color: var(--danger-red);
+    box-shadow: 0 0 40px rgba(255, 42, 42, 0.15), inset 0 0 20px rgba(255, 42, 42, 0.05);
+}
+
+.error-logo {
+    filter: drop-shadow(0 0 5px var(--danger-red)) grayscale(100%);
+    animation: shake 2s infinite, hackerGlowRed 3s infinite alternate;
+}
+
+@keyframes hackerGlowRed {
+    0% { filter: drop-shadow(0 0 2px var(--danger-red)) grayscale(100%); }
+    100% { filter: drop-shadow(0 0 12px var(--danger-red)) grayscale(0%); }
+}
+
+.glitch-text {
+    font-size: 6rem;
+    font-weight: 900;
+    color: #fff;
+    position: relative;
+    margin: 0;
+    font-family: 'Fira Code', monospace;
+    letter-spacing: -5px;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-color);
+}
+
+.glitch-text::before {
+    left: 2px;
+    text-shadow: -1px 0 red;
+    clip: rect(24px, 550px, 90px, 0);
+    animation: glitch-anim 3s infinite linear alternate-reverse;
+}
+
+.glitch-text::after {
+    left: -2px;
+    text-shadow: -1px 0 blue;
+    clip: rect(85px, 550px, 140px, 0);
+    animation: glitch-anim 2.5s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+    0% { clip: rect(4px, 9999px, 86px, 0); transform: skew(0.55deg); }
+    5% { clip: rect(61px, 9999px, 47px, 0); transform: skew(0.24deg); }
+    10% { clip: rect(96px, 9999px, 19px, 0); transform: skew(0.78deg); }
+    15% { clip: rect(69px, 9999px, 78px, 0); transform: skew(0.5deg); }
+    20% { clip: rect(93px, 9999px, 74px, 0); transform: skew(0.66deg); }
+    25% { clip: rect(42px, 9999px, 7px, 0); transform: skew(0.4deg); }
+    30% { clip: rect(38px, 9999px, 2px, 0); transform: skew(0.81deg); }
+    35% { clip: rect(31px, 9999px, 60px, 0); transform: skew(0.32deg); }
+    40% { clip: rect(10px, 9999px, 9px, 0); transform: skew(0.35deg); }
+    45% { clip: rect(42px, 9999px, 69px, 0); transform: skew(0.85deg); }
+    50% { clip: rect(79px, 9999px, 21px, 0); transform: skew(0.37deg); }
+    55% { clip: rect(13px, 9999px, 18px, 0); transform: skew(0.18deg); }
+    60% { clip: rect(72px, 9999px, 99px, 0); transform: skew(0.2deg); }
+    65% { clip: rect(39px, 9999px, 12px, 0); transform: skew(0.19deg); }
+    70% { clip: rect(2px, 9999px, 39px, 0); transform: skew(0.25deg); }
+    75% { clip: rect(76px, 9999px, 48px, 0); transform: skew(0.78deg); }
+    80% { clip: rect(2px, 9999px, 3px, 0); transform: skew(0.6deg); }
+    85% { clip: rect(92px, 9999px, 3px, 0); transform: skew(0.64deg); }
+    90% { clip: rect(17px, 9999px, 7px, 0); transform: skew(0.19deg); }
+    95% { clip: rect(83px, 9999px, 40px, 0); transform: skew(0.59deg); }
+    100% { clip: rect(96px, 9999px, 98px, 0); transform: skew(0.19deg); }
+}
+
+.error-msg-box {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(255, 42, 42, 0.05);
+    border: 1px dashed var(--danger-red);
+    border-radius: 8px;
+}
+
+.error-btn {
+    background: transparent;
+    border: 1px solid var(--danger-red);
+    color: var(--danger-red);
+    box-shadow: none;
+    animation: none;
+}
+
+.error-btn:hover {
+    background: var(--danger-red);
+    color: #fff;
+    box-shadow: 0 0 20px var(--danger-red);
+    transform: translateY(-2px);
+}
