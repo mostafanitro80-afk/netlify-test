@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وحدة التحليل</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="live-counter" id="liveCounter" style="top:10px; right:10px;">Live: ...</div>
+
+    <div class="container">
+        <img src="11zon_cropped.png" alt="App Logo" class="pro-logo" style="width: 100px;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; border: none; font-size: 1.5rem;">تحليل الإشارة</h2>
+            <div style="font-size: 12px; color: var(--hacker-green); font-weight: bold; text-shadow:0 0 5px var(--hacker-green);">متصل ●</div>
+        </div>
+
+        <p style="color: #ccc;">جاري سحب البيانات من السيرفر...</p>
+
+        <div class="monitor-screen">
+            <div style="font-size: 0.8rem; color: #555; text-align: left; direction: ltr;">TARGET_SIGNAL_VAL</div>
+            <div class="big-number" id="randomNumber" style="font-family:'Fira Code'; font-size:3rem; color:#fff; font-weight:bold;">--.--</div>
+            
+            <div class="progress-bar" style="background:#222; height:10px; border-radius:5px; margin-top:20px; overflow:hidden;">
+                <div class="progress-fill" id="progressFill" style="background:var(--hacker-green); height:100%; width:0%;"></div>
+            </div>
+            <div style="text-align: right; font-size: 0.7rem; color: #555; margin-top: 5px;">التحديث: 7s</div>
+        </div>
+
+        <button class="secondary-btn" onclick="logout()">قطع الاتصال</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        if (!localStorage.getItem('isLoggedIn')) window.location.href = 'index'; 
+
+        setInterval(() => {
+            document.getElementById('liveCounter').innerText = `Live: ${Math.floor(Math.random() * 50) + 300}`;
+        }, 3000);
+
+        const display = document.getElementById('randomNumber');
+        const bar = document.getElementById('progressFill');
+        const INTERVAL = 7000;
+        let start = Date.now();
+
+        // دالة توليد الأرقام (معدلة لتقبل المسافات)
+        async function gen() {
+            display.style.opacity = 0.5; // تأثير تحميل بسيط
+
+            let finalNumber = "1.00";
+
+            try {
+                // جلب الإعدادات من الأدمن
+                const { data, error } = await _supabase.from('settings').select('*').eq('id', 1).single();
+                
+                if (data && data.mode === 'manual' && data.manual_list) {
+                    // === الوضع اليدوي ===
+                    // التعديل هنا: استخدام Regex لفصل الأرقام بالمسافات أو الفواصل
+                    // [\s,]+ تعني: افصل عند أي مسافة (space/enter) أو فاصلة (comma)
+                    const numbersArr = data.manual_list
+                        .split(/[\s,]+/)             // التقسيم
+                        .map(s => s.trim())          // تنظيف المسافات الزائدة
+                        .filter(s => s !== "");      // إزالة العناصر الفارغة
+
+                    if(numbersArr.length > 0) {
+                        // معادلة التزامن الزمني لضمان نفس الرقم لكل المستخدمين
+                        const timeIndex = Math.floor(Date.now() / INTERVAL);
+                        const arrIndex = timeIndex % numbersArr.length;
+                        finalNumber = numbersArr[arrIndex];
+                    } else {
+                        finalNumber = (Math.random() * 29 + 1).toFixed(2);
+                    }
+                } else {
+                    // === الوضع العشوائي ===
+                    finalNumber = (Math.random() * 29 + 1).toFixed(2);
+                }
+
+            } catch (err) {
+                console.error("Connection Error, falling back to random", err);
+                finalNumber = (Math.random() * 29 + 1).toFixed(2);
+            }
+
+            // عرض الرقم مع أنميشن بسيط
+            display.style.opacity = 0;
+            setTimeout(() => { 
+                display.innerText = finalNumber; 
+                display.style.opacity = 1; 
+            }, 200);
+
+            start = Date.now();
+        }
+
+        function loop() {
+            let elapsed = Date.now() - start;
+            let remain = INTERVAL - elapsed;
+            if(remain <= 0) gen();
+            else bar.style.width = ((remain/INTERVAL)*100) + "%";
+            requestAnimationFrame(loop);
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index'; 
+        }
+
+        gen(); // تشغيل أولي
+        requestAnimationFrame(loop); // تشغيل الحلقة
+    </script>
+</body>
+</html>
