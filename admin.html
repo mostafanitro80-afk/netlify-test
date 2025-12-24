@@ -13,6 +13,13 @@
         .banned-ip { font-family: 'Fira Code'; color: #fff; font-weight: bold; }
         .unban-btn { background: var(--hacker-green); color: #000; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .unban-btn:hover { box-shadow: 0 0 10px var(--hacker-green); }
+        
+        /* تنسيقات صندوق التحكم في الإشارات */
+        .signal-control-box { background: #1a0505; border: 1px solid var(--warning-orange); padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .mode-switch { display: flex; gap: 20px; margin-bottom: 15px; }
+        .radio-label { color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: bold; }
+        .radio-label input { width: auto; margin: 0; }
+        .control-textarea { background: #000; color: var(--hacker-green); font-family: 'Fira Code'; height: 80px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -50,14 +57,35 @@
                 <div class="stat-card" style="border-color: var(--danger-red);"><span class="stat-number" id="bannedCount" style="color:var(--danger-red);">0</span><span class="stat-label">محظورين</span></div>
             </div>
 
+            <div class="signal-control-box">
+                <h3 style="margin-top:0; color:var(--warning-orange);">🎮 غرفة التحكم في النتائج (App Signals)</h3>
+                
+                <div class="mode-switch">
+                    <label class="radio-label">
+                        <input type="radio" name="signalMode" value="random" checked onchange="toggleSignalInputs()">
+                        وضع عشوائي (تلقائي)
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="signalMode" value="manual" onchange="toggleSignalInputs()">
+                        وضع التحكم (يدوي)
+                    </label>
+                </div>
+
+                <div id="manualInputDiv" class="hidden">
+                    <p style="color:#aaa; font-size:0.8rem; margin-bottom:5px;">أدخل الأرقام مفصولة بفاصلة (مثال: 1.50, 2.30, 99.00)</p>
+                    <textarea id="manualNumbers" class="control-textarea" placeholder="1.00, 2.00, 3.00..."></textarea>
+                </div>
+
+                <button class="manual-btn" style="border-color:var(--warning-orange); color:var(--warning-orange);" onclick="saveSignalSettings()">💾 حفظ إعدادات الإشارات</button>
+            </div>
             <div class="manual-add-box">
                 <h3 style="margin-top:0; color:var(--hacker-green); font-size:1.1rem;">✨ إنشاء حساب VIP يدوياً</h3>
-                <p style="color:#666; font-size:0.8rem; margin-bottom:10px;">قم بكتابة كود مخصص أو اتركه فارغاً للتوليد التلقائي.</p>
                 <div class="manual-row">
                     <input type="text" id="manualCodeInput" placeholder="أدخل الكود هنا (اختياري)..." style="flex:2;">
                     <button class="manual-btn" onclick="createManualCode()">➕ إضافة وتفعيل</button>
                 </div>
             </div>
+
             <div class="admin-controls">
                 <input type="text" id="searchInput" class="search-input" placeholder="بحث (ID / كود / اسم)..." onkeyup="filterRequests()">
                 <button class="filter-btn active" onclick="setFilter('all', this)">الكل</button>
@@ -109,7 +137,13 @@
 
         document.getElementById('authBtn').addEventListener('click', () => {
             const e = document.getElementById('adminEmail').value; const p = document.getElementById('adminPass').value;
-            if(e === "mm@mm.mm" && p === "mm023123") { document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); loadData(); loadAuditLog(); } else { showAlert("❌ خطأ", "بيانات خاطئة!"); }
+            if(e === "mm@mm.mm" && p === "mm023123") { 
+                document.getElementById('adminLogin').classList.add('hidden'); 
+                document.getElementById('adminPanel').classList.remove('hidden'); 
+                loadData(); 
+                loadAuditLog(); 
+                loadSignalSettings(); // تحميل إعدادات الإشارات
+            } else { showAlert("❌ خطأ", "بيانات خاطئة!"); }
         });
 
         async function logAction(action) {
@@ -119,26 +153,56 @@
             loadAuditLog();
         }
 
-        // دالة إنشاء كود يدوي جديدة
+        // === دوال التحكم في الإشارات (الجديدة) ===
+        function toggleSignalInputs() {
+            const mode = document.querySelector('input[name="signalMode"]:checked').value;
+            const div = document.getElementById('manualInputDiv');
+            if(mode === 'manual') div.classList.remove('hidden');
+            else div.classList.add('hidden');
+        }
+
+        async function loadSignalSettings() {
+            const { data, error } = await _supabase.from('settings').select('*').eq('id', 1).single();
+            if(data) {
+                document.querySelector(`input[name="signalMode"][value="${data.mode}"]`).checked = true;
+                document.getElementById('manualNumbers').value = data.manual_list || "";
+                toggleSignalInputs();
+            }
+        }
+
+        async function saveSignalSettings() {
+            const mode = document.querySelector('input[name="signalMode"]:checked').value;
+            const list = document.getElementById('manualNumbers').value;
+            
+            showConfirm("حفظ الإعدادات", "هل تريد تحديث طريقة عرض الأرقام للمستخدمين؟", async () => {
+                const { error } = await _supabase.from('settings').upsert({ id: 1, mode: mode, manual_list: list });
+                if(error) showAlert("خطأ", "فشل الحفظ");
+                else {
+                    logAction(`Updated Signals: Mode=${mode}`);
+                    showAlert("تم ✅", "تم تحديث إعدادات الإشارات بنجاح!");
+                }
+            });
+        }
+        // ===========================================
+
         async function createManualCode() {
             let code = document.getElementById('manualCodeInput').value.trim();
-            // توليد كود عشوائي إذا كان الحقل فارغاً
             if(!code) code = 'VIP-' + Math.floor(100000 + Math.random() * 900000);
 
             showConfirm("إضافة كود", `هل تريد تفعيل الكود: ${code}؟`, async () => {
                 const { error } = await _supabase.from('active_codes').insert([{ code: code, is_active: true }]);
                 if(error) {
-                    showAlert("خطأ", "لم يتم إضافة الكود (قد يكون موجوداً مسبقاً).");
+                    showAlert("خطأ", "لم يتم إضافة الكود.");
                 } else {
                     logAction(`Manually Created Code: ${code}`);
-                    showAlert("نجاح ✅", `تم إضافة الكود ${code} وتفعيله بنجاح.`);
+                    showAlert("نجاح ✅", `تم إضافة الكود ${code} وتفعيله.`);
                     document.getElementById('manualCodeInput').value = '';
                 }
             });
         }
 
         async function activateCode(code, reqId) {
-            let profit = prompt("💰 أدخل مبلغ الربح من هذا المستخدم (بالدولار أو العملة المحلية):", "0");
+            let profit = prompt("💰 أدخل مبلغ الربح من هذا المستخدم:", "0");
             if (profit === null) return; 
 
             showConfirm("تفعيل الكود", `تفعيل الكود وتسجيل ربح ${profit}؟`, async () => {
@@ -148,7 +212,7 @@
                 if(error) showAlert("خطأ", "فشل التفعيل."); 
                 else {
                     logAction(`Activated code ${code} - Profit: ${profit}`);
-                    showAlert("نجاح ✅", "تم تفعيل الكود وتسجيل الربح.");
+                    showAlert("نجاح ✅", "تم التفعيل.");
                     loadData();
                 }
             });
@@ -238,10 +302,8 @@
                 const deviceMatch = r.user_data.match(/Device: (\w+)/);
                 const device = deviceMatch ? deviceMatch[1] : 'Unknown';
                 const deviceIcon = device === 'Mobile' ? '📱' : (device === 'Desktop' ? '💻' : '📟');
-                
                 const d = new Date(r.created_at).toLocaleString('ar-EG');
                 const profitDisplay = r.profit ? `<span class="profit-badge">+$${r.profit}</span>` : '';
-                
                 const safeUserData = escapeHtml(r.user_data);
 
                 const div = document.createElement('div');
