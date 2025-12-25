@@ -3,9 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>وحدة التحليل</title>
+    <title>وحدة التحكم الرئيسية</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* تنسيق إضافي لشبكة الألعاب */
+        .games-menu {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #333;
+        }
+        .game-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+            animation: none; /* إلغاء النبض الافتراضي للأزرار الصغيرة */
+        }
+        .game-btn:hover { transform: translateY(-3px); filter: brightness(1.2); }
+        .game-btn img { width: 25px; height: 25px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+    </style>
 </head>
 <body>
     <div class="live-counter" id="liveCounter" style="top:10px; right:10px;">Live: ...</div>
@@ -14,23 +44,36 @@
         <img src="11zon_cropped.png" alt="App Logo" class="pro-logo" style="width: 100px;">
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; border: none; font-size: 1.5rem;">تحليل الإشارة</h2>
-            <div style="font-size: 12px; color: var(--hacker-green); font-weight: bold; text-shadow:0 0 5px var(--hacker-green);">متصل ●</div>
+            <h2 style="margin: 0; border: none; font-size: 1.3rem;">🚀 هاك الطيارة (Crash)</h2>
+            <div style="font-size: 12px; color: var(--hacker-green); font-weight: bold; text-shadow:0 0 5px var(--hacker-green);">نشط ●</div>
         </div>
 
-        <p style="color: #ccc;">جاري سحب البيانات من السيرفر...</p>
+        <p style="color: #ccc; margin-bottom: 15px;">انتظار نقطة الصفر للإنطلاق...</p>
 
-        <div class="monitor-screen">
-            <div style="font-size: 0.8rem; color: #555; text-align: left; direction: ltr;">TARGET_SIGNAL_VAL</div>
-            <div class="big-number" id="randomNumber" style="font-family:'Fira Code'; font-size:3rem; color:#fff; font-weight:bold;">--.--</div>
+        <div class="monitor-screen" style="border-color: var(--warning-orange); box-shadow: 0 0 20px rgba(255, 174, 0, 0.15);">
+            <div style="font-size: 0.8rem; color: #888; text-align: left; direction: ltr;">NEXT_CRASH_POINT</div>
+            <div class="big-number" id="randomNumber" style="font-family:'Fira Code'; font-size:3.5rem; color:var(--warning-orange); font-weight:bold; text-shadow: 0 0 20px rgba(255, 174, 0, 0.4);">--.--</div>
             
-            <div class="progress-bar" style="background:#222; height:10px; border-radius:5px; margin-top:20px; overflow:hidden;">
-                <div class="progress-fill" id="progressFill" style="background:var(--hacker-green); height:100%; width:0%;"></div>
+            <div class="progress-bar" style="background:#222; height:6px; border-radius:5px; margin-top:20px; overflow:hidden;">
+                <div class="progress-fill" id="progressFill" style="background:var(--warning-orange); height:100%; width:0%;"></div>
             </div>
-            <div style="text-align: right; font-size: 0.7rem; color: #555; margin-top: 5px;">التحديث: 7s</div>
+            <div style="text-align: right; font-size: 0.7rem; color: #555; margin-top: 5px;">Syncing with 1xBet Server...</div>
         </div>
 
-        <button class="secondary-btn" onclick="logout()">قطع الاتصال</button>
+        <p style="text-align: right; font-size: 0.9rem; margin-top: 25px; color: #fff; font-weight: bold;">🎮 أدوات اختراق أخرى:</p>
+        <div class="games-menu">
+            <button class="game-btn" onclick="window.location.href='apple.html'" style="background: linear-gradient(135deg, #d32f2f, #b71c1c);">
+                <span>🍎</span>
+                <span>Apple</span>
+            </button>
+            
+            <button class="game-btn" onclick="window.location.href='crystal.html'" style="background: linear-gradient(135deg, #8e2de2, #4a00e0);">
+                <span>🔮</span>
+                <span>Crystal</span>
+            </button>
+        </div>
+
+        <button class="secondary-btn" onclick="logout()" style="margin-top: 20px;">تسجيل الخروج</button>
     </div>
 
     <script>
@@ -38,7 +81,7 @@
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        if (!localStorage.getItem('isLoggedIn')) window.location.href = 'index'; 
+        if (!localStorage.getItem('isLoggedIn')) window.location.href = 'index.html'; 
 
         setInterval(() => {
             document.getElementById('liveCounter').innerText = `Live: ${Math.floor(Math.random() * 50) + 300}`;
@@ -49,48 +92,41 @@
         const INTERVAL = 7000;
         let start = Date.now();
 
-        // دالة توليد الأرقام (معدلة لتقبل المسافات)
+        // دالة توليد الأرقام (Crash)
         async function gen() {
-            display.style.opacity = 0.5; // تأثير تحميل بسيط
+            display.style.opacity = 0.5;
 
             let finalNumber = "1.00";
 
             try {
-                // جلب الإعدادات من الأدمن
                 const { data, error } = await _supabase.from('settings').select('*').eq('id', 1).single();
                 
                 if (data && data.mode === 'manual' && data.manual_list) {
-                    // === الوضع اليدوي ===
-                    // التعديل هنا: استخدام Regex لفصل الأرقام بالمسافات أو الفواصل
-                    // [\s,]+ تعني: افصل عند أي مسافة (space/enter) أو فاصلة (comma)
-                    const numbersArr = data.manual_list
-                        .split(/[\s,]+/)             // التقسيم
-                        .map(s => s.trim())          // تنظيف المسافات الزائدة
-                        .filter(s => s !== "");      // إزالة العناصر الفارغة
-
+                    const numbersArr = data.manual_list.split(/[\s,]+/).map(s => s.trim()).filter(s => s !== "");
                     if(numbersArr.length > 0) {
-                        // معادلة التزامن الزمني لضمان نفس الرقم لكل المستخدمين
                         const timeIndex = Math.floor(Date.now() / INTERVAL);
                         const arrIndex = timeIndex % numbersArr.length;
                         finalNumber = numbersArr[arrIndex];
                     } else {
-                        finalNumber = (Math.random() * 29 + 1).toFixed(2);
+                        finalNumber = (Math.random() * 10 + 1).toFixed(2) + "x";
                     }
                 } else {
-                    // === الوضع العشوائي ===
-                    finalNumber = (Math.random() * 29 + 1).toFixed(2);
+                    // في لعبة الطيارة الأرقام عادة تكون متبوعة بـ x
+                    finalNumber = (Math.random() * 5 + 1).toFixed(2) + "x";
                 }
 
             } catch (err) {
-                console.error("Connection Error, falling back to random", err);
-                finalNumber = (Math.random() * 29 + 1).toFixed(2);
+                console.error("Connection Error", err);
+                finalNumber = (Math.random() * 5 + 1).toFixed(2) + "x";
             }
 
-            // عرض الرقم مع أنميشن بسيط
             display.style.opacity = 0;
             setTimeout(() => { 
-                display.innerText = finalNumber; 
+                display.innerText = finalNumber.includes('x') ? finalNumber : finalNumber + 'x'; 
                 display.style.opacity = 1; 
+                // تغيير لون الرقم بناءً على قيمته (لإضفاء واقعية)
+                if(parseFloat(finalNumber) < 2.0) display.style.color = "#ff3333"; // خسارة (أحمر)
+                else display.style.color = "#ffae00"; // فوز (برتقالي/ذهبي)
             }, 200);
 
             start = Date.now();
@@ -106,11 +142,11 @@
 
         function logout() {
             localStorage.removeItem('isLoggedIn');
-            window.location.href = 'index'; 
+            window.location.href = 'index.html'; 
         }
 
-        gen(); // تشغيل أولي
-        requestAnimationFrame(loop); // تشغيل الحلقة
+        gen(); 
+        requestAnimationFrame(loop); 
     </script>
 </body>
 </html>
