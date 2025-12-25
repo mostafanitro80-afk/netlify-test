@@ -3,81 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REQUEST ACCESS | SYSTEM</title>
+    <title>طلب اشتراك جديد | SYSTEM</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* لوحة معلومات الجهاز */
         .device-info-box {
             background: rgba(0, 20, 0, 0.6);
             border: 1px solid var(--hacker-green);
             padding: 15px; border-radius: 8px;
-            margin-bottom: 25px; text-align: left; direction: ltr;
+            margin-bottom: 25px; text-align: right; 
             font-family: 'Fira Code', monospace; font-size: 0.8rem;
-            color: #ccc;
+            color: #ccc; direction: rtl;
         }
         .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dashed #333; padding-bottom: 2px; }
-        .info-val { color: var(--hacker-green); font-weight: bold; }
-        
-        /* تحسين شكل الرفع */
         .upload-icon-pulse { animation: pulse-green 2s infinite; font-size: 2rem; }
     </style>
 </head>
 <body>
-    <div class="live-counter" id="liveCounter">Nodes Active: ...</div>
+    <div class="live-counter" id="liveCounter">العقد النشطة: ...</div>
     
     <div id="customModal" class="modal-overlay">
         <div class="modal-box">
-            <div class="modal-title" id="modalTitle">[ SYSTEM_MSG ]</div>
+            <div class="modal-title" id="modalTitle">[ رسالة النظام ]</div>
             <div class="modal-msg" id="modalMsg">...</div>
-            <div class="modal-actions"><button class="modal-btn" onclick="closeModal()">ACKNOWLEDGE</button></div>
+            <div class="modal-actions"><button class="modal-btn" onclick="closeModal()">حسناً</button></div>
         </div>
     </div>
 
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
-        <div id="loadingText" class="loading-text">INITIALIZING...</div>
-        <div style="font-family:'Fira Code'; font-size:0.8rem; color:#666; margin-top:10px;" id="loadingSubText">Please wait...</div>
+        <div id="loadingText" class="loading-text">جاري المعالجة...</div>
+        <div style="font-family:'Cairo'; font-size:0.8rem; color:#666; margin-top:10px;" id="loadingSubText">يرجى الانتظار...</div>
     </div>
 
     <div class="container wide-mode" id="mainContainer" style="display:none;">
         <h2 id="typewriterTitle"></h2>
         
         <div class="device-info-box">
-            <div style="color:var(--hacker-green); margin-bottom:10px;">[ DEVICE_DIAGNOSTICS ]</div>
-            <div class="info-row"><span>PLATFORM:</span> <span class="info-val" id="osVal">DETECTING...</span></div>
-            <div class="info-row"><span>BROWSER:</span> <span class="info-val" id="browserVal">DETECTING...</span></div>
-            <div class="info-row"><span>RES:</span> <span class="info-val" id="resVal">...</span></div>
-            <div class="info-row"><span>IP STATUS:</span> <span class="info-val">HIDDEN (PROXY)</span></div>
+            <div style="color:var(--hacker-green); margin-bottom:10px;">[ فحص الجهاز ]</div>
+            <div class="info-row"><span>نظام التشغيل:</span> <span class="info-val" id="osVal">جاري الكشف...</span></div>
+            <div class="info-row"><span>المتصفح:</span> <span class="info-val" id="browserVal">جاري الكشف...</span></div>
+            <div class="info-row"><span>الأبعاد:</span> <span class="info-val" id="resVal">...</span></div>
+            <div class="info-row"><span>الحماية:</span> <span class="info-val">مفعلة (Proxy)</span></div>
         </div>
 
-        <label class="title">>> SELECT TARGET PLATFORM:</label>
+        <label class="title">>> اختر المنصة المستهدفة:</label>
         <div class="program-grid">
             <div class="program-option" onclick="playSound('click'); selectProgram('1x', this)"><img src="1x.png" class="program-icon"></div>
             <div class="program-option" onclick="playSound('click'); selectProgram('m', this)"><img src="m.png" class="program-icon"></div>
             <div class="program-option" onclick="playSound('click'); selectProgram('l', this)"><img src="l.png" class="program-icon"></div>
         </div>
 
-        <label class="title">>> USER CREDENTIALS:</label>
-        <textarea id="userData" placeholder="ID / EMAIL / NOTES..."></textarea>
+        <label class="title">>> بيانات الحساب:</label>
+        <textarea id="userData" placeholder="اكتب رقم الآيدي (ID) أو البريد الإلكتروني وأي ملاحظات أخرى..."></textarea>
 
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 250px;">
-                <label class="title">>> REGISTRATION PROOF:</label>
+                <label class="title">>> إثبات التسجيل:</label>
                 <label for="regProof" class="upload-box" id="regBox">
                     <div class="upload-placeholder">
                         <span class="upload-icon-pulse">📂</span>
-                        <span id="regText" style="font-family:'Fira Code'; margin-top:10px;">UPLOAD IMAGE</span>
+                        <span id="regText" style="font-family:'Cairo'; margin-top:10px;">رفع الصورة</span>
                     </div>
                     <img id="regPreview" class="preview-img">
                     <input type="file" id="regProof" accept="image/*" onchange="handleFileSelect(this, 'regBox', 'regText', 'regPreview')">
                 </label>
             </div>
             <div style="flex: 1; min-width: 250px;">
-                <label class="title">>> DEPOSIT PROOF:</label>
+                <label class="title">>> إثبات الإيداع:</label>
                 <label for="depProof" class="upload-box" id="depBox">
                     <div class="upload-placeholder">
                         <span class="upload-icon-pulse">💎</span>
-                        <span id="depText" style="font-family:'Fira Code'; margin-top:10px;">UPLOAD IMAGE</span>
+                        <span id="depText" style="font-family:'Cairo'; margin-top:10px;">رفع الصورة</span>
                     </div>
                     <img id="depPreview" class="preview-img">
                     <input type="file" id="depProof" accept="image/*" onchange="handleFileSelect(this, 'depBox', 'depText', 'depPreview')">
@@ -85,17 +81,17 @@
             </div>
         </div>
 
-        <button id="submitBtn" onclick="runSubmit()">GENERATE ACCESS KEY</button>
+        <button id="submitBtn" onclick="runSubmit()">توليد مفتاح الدخول</button>
         
         <div id="codeDisplay" class="hidden" style="margin-top: 30px; border-top: 1px solid rgba(0,255,0,0.2); padding-top: 20px;">
-            <p style="color:var(--hacker-green); font-family:'Fira Code';">>> KEY GENERATED SUCCESSFULLY:</p>
+            <p style="color:var(--hacker-green); font-family:'Cairo'; font-weight:bold;">>> تم إنشاء المفتاح بنجاح:</p>
             <div style="background:rgba(0,0,0,0.8); padding:20px; border-radius:4px; border:1px dashed var(--hacker-green); margin:15px 0; font-size:2rem; font-weight:bold; letter-spacing:4px; font-family:'Fira Code'; color:#fff; text-shadow: 0 0 10px var(--hacker-green);" id="generatedCode"></div>
             
-            <p style="color:#ffaa00; font-size:0.8rem; margin-bottom:15px; font-family:'Fira Code';">⚠️ SAVE THIS KEY. ADMIN APPROVAL REQUIRED.</p>
+            <p style="color:#ffaa00; font-size:0.8rem; margin-bottom:15px; font-family:'Cairo';">⚠️ احفظ هذا الكود جيداً. يجب تفعيله من قبل المسؤول ليعمل.</p>
 
-            <button class="copy-btn" onclick="copyCode()">📋 COPY TO CLIPBOARD</button>
+            <button class="copy-btn" onclick="copyCode()">📋 نسخ الكود</button>
             <br>
-            <button class="secondary-btn" onclick="window.location.href='index.html'" style="margin-top:20px; width:100%; border-color:#fff; color:#fff;">🔙 RETURN TO LOGIN</button>
+            <button class="secondary-btn" onclick="window.location.href='index.html'" style="margin-top:20px; width:100%; border-color:#fff; color:#fff;">🔙 العودة لتسجيل الدخول</button>
         </div>
     </div>
 
@@ -110,20 +106,19 @@
         let userIP = "Unknown";
         let selectedProgram = null;
 
-        // دالة كشف معلومات الجهاز للعرض
         function detectSystemInfo() {
             const ua = navigator.userAgent;
-            let os = "Unknown OS";
-            if (ua.indexOf("Win") != -1) os = "Windows NT";
+            let os = "نظام غير معروف";
+            if (ua.indexOf("Win") != -1) os = "Windows";
             if (ua.indexOf("Mac") != -1) os = "MacOS";
-            if (ua.indexOf("Linux") != -1) os = "Linux x86";
-            if (ua.indexOf("Android") != -1) os = "Android System";
+            if (ua.indexOf("Linux") != -1) os = "Linux";
+            if (ua.indexOf("Android") != -1) os = "Android";
             if (ua.indexOf("like Mac") != -1) os = "iOS";
-
-            let browser = "Unknown Browser";
-            if(ua.indexOf("Chrome") != -1) browser = "Chrome Engine";
-            else if(ua.indexOf("Safari") != -1) browser = "Safari WebKit";
-            else if(ua.indexOf("Firefox") != -1) browser = "Mozilla Firefox";
+            
+            let browser = "غير معروف";
+            if(ua.indexOf("Chrome") != -1) browser = "Chrome";
+            else if(ua.indexOf("Safari") != -1) browser = "Safari";
+            else if(ua.indexOf("Firefox") != -1) browser = "Firefox";
 
             document.getElementById('osVal').innerText = os;
             document.getElementById('browserVal').innerText = browser;
@@ -133,16 +128,12 @@
         function getDeviceType() {
             const ua = navigator.userAgent;
             if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet";
-            if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/.test(ua)) return "Mobile";
+            if (/Mobile|Android|iP(hone|od)|IEMobile/.test(ua)) return "Mobile";
             return "Desktop";
         }
-        function getFingerprint() {
-            return btoa(navigator.userAgent + screen.width + screen.colorDepth).slice(0, 12);
-        }
+        function getFingerprint() { return btoa(navigator.userAgent + screen.width + screen.colorDepth).slice(0, 12); }
 
-        setInterval(() => {
-            document.getElementById('liveCounter').innerText = `Nodes Active: ${Math.floor(Math.random() * 50) + 300}`;
-        }, 3000);
+        setInterval(() => { document.getElementById('liveCounter').innerText = `العقد النشطة: ${Math.floor(Math.random() * 50) + 300}`; }, 3000);
 
         function showModal(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerText = msg; document.getElementById('customModal').classList.add('active'); playSound('click'); }
         function closeModal() { document.getElementById('customModal').classList.remove('active'); }
@@ -160,7 +151,7 @@
                 const { data: banned } = await _supabase.from('banned_ips').select('*').eq('ip', userIP);
                 
                 if (banned && banned.length > 0) {
-                    document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:red;flex-direction:column;text-align:center;"><h1 style="font-size:4rem;">🚫 ACCESS DENIED</h1></div>`;
+                    document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:red;flex-direction:column;text-align:center;"><h1 style="font-size:4rem;">🚫 محظور</h1></div>`;
                 } else {
                     showMainContent();
                 }
@@ -172,14 +163,14 @@
             const container = document.getElementById('mainContainer');
             container.style.display = 'block';
             setTimeout(() => container.classList.add('ui-visible'), 50);
-            typeWriter("REQUEST NEW ACCESS //", "typewriterTitle");
+            typeWriter("طلب صلاحيات جديدة //", "typewriterTitle");
         }
 
         window.onload = checkBan;
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) { if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); if (type === 'click') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.05); } else if (type === 'success') { osc.type = 'square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.3); } }
-        document.addEventListener('mousemove', e => { document.body.style.setProperty('--mouse-x', e.clientX + 'px'); document.body.style.setProperty('--mouse-y', e.clientY + 'px'); });
+        
         function typeWriter(text, elementId) { let i = 0; const target = document.getElementById(elementId); target.innerHTML = ""; function type() { if (i < text.length) { target.innerHTML += text.charAt(i); i++; setTimeout(type, 50); } } type(); }
         
         function handleFileSelect(input, boxId, textId, previewId) { 
@@ -187,7 +178,7 @@
                 playSound('click'); 
                 const file = input.files[0]; 
                 document.getElementById(boxId).classList.add('uploaded'); 
-                document.getElementById(textId).innerText = "FILE LOADED"; 
+                document.getElementById(textId).innerText = "تم رفع الملف"; 
                 document.getElementById(textId).style.color = "#0f0";
                 const reader = new FileReader(); 
                 reader.onload = e => { const img = document.getElementById(previewId); img.src = e.target.result; img.style.display = "block"; }; 
@@ -196,7 +187,7 @@
         }
         
         function selectProgram(name, el) { selectedProgram = name; document.querySelectorAll('.program-option').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); playSound('click'); }
-        function copyCode() { const code = document.getElementById('generatedCode').innerText; navigator.clipboard.writeText(code); showModal("COPIED", "Access key copied to clipboard."); }
+        function copyCode() { const code = document.getElementById('generatedCode').innerText; navigator.clipboard.writeText(code); showModal("نسخ", "تم نسخ الكود للحافظة."); }
         
         function updateLoading(text, subtext) {
             document.getElementById('loadingText').innerText = text;
@@ -207,7 +198,7 @@
         
         async function sendToTelegram(program, data, code, regUrl, depUrl, ip, device) { 
             const apiUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`; 
-            const message = `🚨 <b>NEW REQUEST!</b>\n🌍 <b>IP:</b> ${ip}\n📱 <b>Device:</b> ${device}\n💻 <b>${program}</b>\n👤 <b>Data:</b>\n${data}\n\n🔑 <code>${code}</code>`; 
+            const message = `🚨 <b>طلب جديد!</b>\n🌍 <b>IP:</b> ${ip}\n📱 <b>الجهاز:</b> ${device}\n💻 <b>${program}</b>\n👤 <b>البيانات:</b>\n${data}\n\n🔑 <code>${code}</code>`; 
             fetch(`${apiUrl}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: message, parse_mode: 'HTML' }) }); 
         }
 
@@ -218,24 +209,23 @@
             const depFile = document.getElementById('depProof').files[0];
             const btn = document.getElementById('submitBtn');
 
-            if(!selectedProgram) { showModal("ERROR", "Select Target Platform."); return; }
-            if(!userData) { showModal("ERROR", "User Credentials Missing."); return; }
-            if(!regFile || !depFile) { showModal("ERROR", "Proof Images Required."); return; }
+            if(!selectedProgram) { showModal("خطأ", "يجب اختيار المنصة (السكربت)."); return; }
+            if(!userData) { showModal("خطأ", "بيانات المستخدم مطلوبة."); return; }
+            if(!regFile || !depFile) { showModal("خطأ", "يجب رفع صور الإثبات."); return; }
 
-            // تفعيل شاشة التحميل مع خطوات وهمية
             document.getElementById('loadingOverlay').classList.add('active');
             
             try {
-                updateLoading("ESTABLISHING UPLINK...", "Connecting to secure storage...");
+                updateLoading("جاري الاتصال...", "يتم تأمين البيانات...");
                 await new Promise(r => setTimeout(r, 1000));
 
-                updateLoading("ENCRYPTING PAYLOAD...", "Compressing images...");
+                updateLoading("تشفير الملفات...", "جاري ضغط الصور...");
                 const [regUrl, depUrl] = await Promise.all([
                     uploadImage(regFile),
                     uploadImage(depFile)
                 ]);
 
-                updateLoading("VERIFYING INTEGRITY...", "Checking database consistency...");
+                updateLoading("التحقق من البيانات...", "جاري الحفظ في قاعدة البيانات...");
                 await new Promise(r => setTimeout(r, 800));
 
                 const code = 'KEY-' + Math.floor(100000 + Math.random() * 900000);
@@ -248,12 +238,12 @@
 
                 sendToTelegram(selectedProgram, userData, code, regUrl, depUrl, userIP, device);
 
-                updateLoading("FINALIZING...", "Done.");
+                updateLoading("اكتمال العملية...", "تم بنجاح.");
                 await new Promise(r => setTimeout(r, 500));
                 document.getElementById('loadingOverlay').classList.remove('active');
 
                 playSound('success'); 
-                showModal("SUCCESS", "Access Key Generated.");
+                showModal("تم بنجاح", "تم توليد المفتاح الخاص بك.");
                 
                 document.getElementById('codeDisplay').classList.remove('hidden');
                 document.getElementById('generatedCode').innerText = code;
@@ -263,7 +253,7 @@
             } catch (e) { 
                 console.error(e); 
                 document.getElementById('loadingOverlay').classList.remove('active'); 
-                showModal("FATAL ERROR", "Connection dropped."); 
+                showModal("خطأ قاتل", "فشل الاتصال بالسيرفر. حاول لاحقاً."); 
             }
         }
     </script>
