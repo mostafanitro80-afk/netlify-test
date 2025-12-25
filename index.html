@@ -6,8 +6,8 @@
     <title>بوابة الدخول الآمنة | V9</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* تنسيقات إضافية للعربية */
-        .boot-screen { font-family: 'Courier New', monospace; direction: ltr; text-align: left; }
+        /* تنسيقات إضافية للعربية لجعل التيرمينال يدعم اليمين لليسار */
+        .boot-screen { font-family: 'Courier New', monospace; direction: rtl; text-align: right; }
         .ticker-wrap { font-family: 'Cairo', sans-serif; }
     </style>
 </head>
@@ -95,16 +95,16 @@
 
         async function runBootSequence() {
             document.body.style.display = 'block';
-            // تم تعريب السجلات لتبدو احترافية
+            // === تم تعريب أوامر الإقلاع هنا ===
             const logs = [
-                "Initializing Kernel...", 
-                "تحميل وحدات النظام: NET, CRYPTO, FS...", 
-                "الاتصال بالأقمار الصناعية...", 
+                "جاري تهيئة النظام (Kernel)...", 
+                "تحميل وحدات الشبكة والتشفير...", 
+                "جاري الاتصال بالسيرفر الرئيسي...", 
                 "تجاوز جدار الحماية (Firewall)...",
-                "جلب مفاتيح التشفير...", 
+                "جلب مفاتيح فك التشفير...", 
                 "التحقق من هوية الجهاز...", 
                 "تم الاتصال بنجاح [200 OK]", 
-                "تشغيل الواجهة الرسومية..."
+                "تشغيل واجهة المستخدم الرسومية..."
             ];
             
             const term = document.getElementById('terminalLogs');
