@@ -165,7 +165,7 @@
                     } else if (data.is_active === true) {
                         localStorage.setItem('isLoggedIn', 'true'); window.location.href = 'app.html';
                     } else {
-                        showModal("قيد الانتظار", "مفتاحك قيد المراجعة من قبل الإدارة. يرجى الانتظار.");
+                        showModal("قيد الانتظار", "مفتاحك قيد المراجعة يرجى الانتظار.");
                     }
                 } catch (err) { showModal("خطأ اتصال", "فشل الاتصال بقاعدة البيانات."); shakeScreen(); } 
                 finally { btn.innerText = "بدء الاتصال بالسيرفر"; btn.disabled = false; }
