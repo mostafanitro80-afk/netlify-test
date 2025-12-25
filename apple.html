@@ -8,12 +8,13 @@
     <style>
         /* تنسيقات خاصة بشبكة التفاح */
         .game-area {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.6);
             padding: 15px;
             border-radius: 12px;
             border: 1px solid #333;
             margin: 20px 0;
             position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
         }
 
         .apple-grid {
@@ -29,11 +30,31 @@
             padding: 4px;
             border-radius: 6px;
             transition: 0.3s;
+            position: relative;
         }
 
         .row.active-row {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px dashed rgba(255, 255, 255, 0.2);
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px dashed rgba(0, 255, 65, 0.3);
+        }
+
+        /* نسبة الاحتمال الوهمية تظهر جانب الصف */
+        .row.active-row::before {
+            content: "ANALYZING...";
+            position: absolute;
+            right: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: 'Fira Code';
+            font-size: 0.6rem;
+            color: var(--hacker-green);
+            animation: blink 0.5s infinite;
+        }
+        
+        .row.hacked-row::before {
+            content: "100% SAFE";
+            color: #fff;
+            animation: none;
         }
 
         .cell {
@@ -51,6 +72,12 @@
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
+        /* تأثير المسح الضوئي */
+        .cell.scanning {
+            background: rgba(0, 255, 65, 0.2);
+            box-shadow: 0 0 10px var(--hacker-green);
+        }
+
         /* أيقونة التفاحة الافتراضية */
         .apple-icon {
             width: 24px;
@@ -58,6 +85,7 @@
             fill: #444;
             transition: 0.4s;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+            opacity: 0.3;
         }
 
         /* حالة التفاحة السليمة (Hack Result) */
@@ -71,6 +99,7 @@
 
         .cell.safe .apple-icon {
             fill: #fff; /* قلب التفاحة أبيض */
+            opacity: 1;
             filter: drop-shadow(0 0 5px var(--hacker-green));
             animation: applePulse 1s infinite alternate;
         }
@@ -128,8 +157,8 @@
         
         <h2 style="margin-bottom: 5px;">APPLE HACK</h2>
         <div class="info-bar">
-            <span>Server: <span style="color:var(--hacker-green);">CONNECTED</span></span>
-            <span>Game: Apple of Fortune</span>
+            <span>Protocol: <span style="color:var(--hacker-green);">V.9.2</span></span>
+            <span>Mode: <span style="color:gold;">ACTIVE</span></span>
         </div>
 
         <div class="game-area">
@@ -137,11 +166,11 @@
                 </div>
         </div>
 
-        <button id="hackBtn" onclick="runHack()">⚡ كشف المسار الآمن</button>
+        <button id="hackBtn" onclick="runHack()">⚡ بدء التحليل (START)</button>
         <button class="secondary-btn" onclick="resetGrid()">🔄 تنظيف الشبكة</button>
 
         <p style="font-size: 0.75rem; color: #555; margin-top: 15px; direction: ltr; font-family: 'Fira Code';">
-            SCRIPT_VER: 9.5 | BYPASS: ACTIVE
+            AI_PATH_FINDER: ENABLED | LATENCY: 12ms
         </p>
     </div>
 
@@ -164,7 +193,7 @@
             gain.connect(audioCtx.destination);
             osc.type = type;
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // خفض الصوت قليلاً
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
             osc.start();
             osc.stop(audioCtx.currentTime + duration);
@@ -201,29 +230,57 @@
 
         // دالة التنظيف
         function resetGrid() {
-            playTone(200, 'square', 0.2);
-            document.querySelectorAll('.cell').forEach(c => c.classList.remove('safe'));
-            document.querySelectorAll('.row').forEach(r => r.classList.remove('active-row'));
+            playTone(200, 'sawtooth', 0.2);
+            document.querySelectorAll('.cell').forEach(c => {
+                c.classList.remove('safe', 'scanning');
+            });
+            document.querySelectorAll('.row').forEach(r => {
+                r.classList.remove('active-row', 'hacked-row');
+            });
         }
 
-        // دالة الاختراق
+        // دالة محاكاة الاختراق (تأثير الروليت)
+        function scanRow(rowElem, callback) {
+            const cells = Array.from(rowElem.children);
+            let scanCount = 0;
+            const maxScans = 6; // عدد التنقلات قبل الاستقرار
+            const speed = 60; // سرعة التنقل
+
+            const interval = setInterval(() => {
+                // إزالة التأثير من الجميع
+                cells.forEach(c => c.classList.remove('scanning'));
+                
+                // اختيار خلية عشوائية للتظليل المؤقت
+                const randIndex = Math.floor(Math.random() * COLS);
+                cells[randIndex].classList.add('scanning');
+                playTone(800, 'square', 0.05); // صوت تكتكة
+
+                scanCount++;
+                if (scanCount >= maxScans) {
+                    clearInterval(interval);
+                    cells.forEach(c => c.classList.remove('scanning'));
+                    callback(); // الاستقرار على الخلية النهائية
+                }
+            }, speed);
+        }
+
+        // دالة الاختراق الرئيسية
         function runHack() {
             const btn = document.getElementById('hackBtn');
             if(btn.disabled) return;
 
             resetGrid();
             btn.disabled = true;
-            btn.innerText = "جاري التحليل...";
+            btn.innerText = "جاري كسر التشفير...";
             
             let currentRow = 0; // نبدأ من الصف الأول (الأسفل)
 
-            // دالة تكرارية (Loop) مع تأخير زمني
-            function processRow() {
+            function processNextRow() {
                 if (currentRow >= ROWS) {
                     // انتهى الاختراق
                     btn.disabled = false;
-                    btn.innerText = "⚡ كشف المسار الآمن";
-                    playTone(800, 'square', 0.5); // نغمة النهاية
+                    btn.innerText = "⚡ بدء التحليل (START)";
+                    playTone(1200, 'sine', 0.6); // نغمة الفوز
                     return;
                 }
 
@@ -231,24 +288,28 @@
                 const rowElem = document.getElementById(`row-${currentRow}`);
                 rowElem.classList.add('active-row');
 
-                // اختيار خلية عشوائية آمنة (من 0 إلى 4)
-                const randomSafeIndex = Math.floor(Math.random() * COLS);
-                const safeCell = rowElem.children[randomSafeIndex];
+                // تشغيل تأثير المسح (Scanning) أولاً
+                scanRow(rowElem, () => {
+                    // بعد انتهاء المسح، نختار الخلية الآمنة الحقيقية
+                    const randomSafeIndex = Math.floor(Math.random() * COLS);
+                    const safeCell = rowElem.children[randomSafeIndex];
 
-                // تفعيل الخلية الآمنة
-                safeCell.classList.add('safe');
-                
-                // تشغيل صوت
-                playTone(400 + (currentRow * 50), 'sine'); // التردد يزداد كلما صعدنا
+                    // تفعيل الخلية الآمنة
+                    safeCell.classList.add('safe');
+                    rowElem.classList.add('hacked-row'); // تغيير النص الجانبي
+                    
+                    // تشغيل صوت النجاح
+                    playTone(400 + (currentRow * 100), 'sine', 0.2); 
 
-                currentRow++;
-                
-                // الانتقال للصف التالي بعد 400 ملي ثانية
-                setTimeout(processRow, 400);
+                    currentRow++;
+                    
+                    // الانتظار قليلاً قبل الانتقال للصف التالي
+                    setTimeout(processNextRow, 200);
+                });
             }
 
             // بدء العملية
-            processRow();
+            processNextRow();
         }
 
         // تشغيل الشبكة عند التحميل
