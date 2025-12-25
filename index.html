@@ -3,23 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة الدخول</title>
+    <title>SECURE GATEWAY | V9</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* تنسيقات خاصة بشاشة التيرمينال */
+        .boot-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            padding: 20px; font-family: 'Fira Code', monospace;
+            color: var(--hacker-green); overflow: hidden;
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .log-line { margin: 2px 0; font-size: 0.8rem; opacity: 0; animation: fadeInLog 0.1s forwards; }
+        @keyframes fadeInLog { to { opacity: 1; } }
+
+        /* شريط الحالة أسفل الشاشة */
+        .status-bar {
+            display: flex; justify-content: space-between;
+            font-size: 0.7rem; color: #666; margin-top: 20px;
+            border-top: 1px solid #333; padding-top: 10px; font-family: 'Fira Code';
+        }
+        .status-item { display: flex; align-items: center; gap: 5px; }
+        .blink-dot { width: 6px; height: 6px; background: var(--hacker-green); border-radius: 50%; animation: blink 1s infinite; }
+        
+        /* شريط الأخبار المتحرك */
+        .ticker-wrap {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(0, 20, 0, 0.9); border-top: 1px solid var(--hacker-green);
+            overflow: hidden; height: 30px; line-height: 30px; white-space: nowrap;
+            font-family: 'Fira Code'; font-size: 0.8rem; color: #fff; z-index: 100;
+        }
+        .ticker-move { display: inline-block; padding-left: 100%; animation: ticker 20s linear infinite; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+    </style>
 </head>
 <body style="display:none;" id="bodyContent">
 
-    <div id="introScreen" class="intro-screen">
-        <img src="11zon_cropped.png" alt="Logo" class="intro-logo" id="movingLogo">
-        <div class="intro-text" id="introText">جاري تهيئة النظام...</div>
+    <div id="bootScreen" class="boot-screen">
+        <div id="terminalLogs"></div>
     </div>
 
-    <div class="live-counter" id="liveCounter">المتصلين: ...</div>
-    
-    <a href="https://t.me/YOUR_TELEGRAM_LINK" class="telegram-float" target="_blank" title="دعم فني وتواصل">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 11.944 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.638z"/>
-        </svg>
-    </a>
+    <div class="ticker-wrap">
+        <div class="ticker-move">
+            <span style="color:var(--hacker-green);">[SYSTEM]</span> New Vulnerability Found in 1xBet API (Port 8080) ... 
+            <span style="color:gold;">[UPDATE]</span> Script V9.5 Released with Anti-Ban Protection ... 
+            <span style="color:var(--danger-red);">[ALERT]</span> High Traffic Detected on Server 4 ...
+        </div>
+    </div>
 
     <div id="loginModal" class="modal-overlay">
         <div class="modal-box">
@@ -32,17 +62,25 @@
     <div class="container" id="mainContainer" style="display: none;">
         <img src="11zon_cropped.png" alt="App Logo" class="pro-logo" id="targetLogo" style="opacity: 0;">
         
-        <h2>بوابة السيرفر الآمنة</h2>
-        <p style="color: #888; margin-bottom: 20px;">>> أدخل الكود للدخول...</p>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">GATEWAY LOGIN</h2>
+            <div style="font-family: 'Fira Code'; font-size: 0.7rem; color: #888; margin-top: 5px;">ENCRYPTION: AES-256 | PROXY: <span style="color:var(--hacker-green)">ON</span></div>
+        </div>
         
         <div class="input-wrapper">
-            <input type="text" id="accessCode" placeholder="أدخل الكود هنا" 
-                   style="text-align: center; font-weight: bold; font-family:'Fira Code'; letter-spacing:0px;">
+            <input type="text" id="accessCode" placeholder="ENTER ACCESS KEY" 
+                   style="text-align: center; font-weight: bold; font-family:'Fira Code'; letter-spacing:2px; text-transform:uppercase;">
         </div>
 
-        <button id="loginBtn">بدء الاتصال</button>
-        <button class="secondary-btn" onclick="window.location.href='create'" style="width:100%;">إنشاء كود جديد</button>
-        <p id="vpnWarning" style="color: var(--warning-orange); font-size: 0.8rem; margin-top: 10px; display: none;">⚠️ تحذير: تم اكتشاف اتصال VPN/Proxy</p>
+        <button id="loginBtn">INITIALIZE CONNECTION</button>
+        <button class="secondary-btn" onclick="window.location.href='create.html'" style="width:100%;">REQUEST NEW ACCESS</button>
+        
+        <div class="status-bar">
+            <div class="status-item"><div class="blink-dot"></div> SERVER: ONLINE</div>
+            <div class="status-item">LATENCY: <span id="pingVal">45ms</span></div>
+        </div>
+
+        <p id="vpnWarning" style="color: var(--warning-orange); font-size: 0.8rem; margin-top: 10px; display: none; border: 1px dashed var(--warning-orange); padding: 5px;">⚠️ SECURITY ALERT: VPN TUNNEL DETECTED</p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -51,14 +89,21 @@
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function showModal(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerText = msg; document.getElementById('loginModal').classList.add('active'); }
-        function closeModal() { document.getElementById('loginModal').classList.remove('active'); }
-        
-        function shakeScreen() {
-            const container = document.getElementById('mainContainer');
-            container.classList.add('shake-element');
-            setTimeout(() => container.classList.remove('shake-element'), 500);
+        // تأثير الصوت
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type='square', len=0.1) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            osc.start(); osc.stop(audioCtx.currentTime + len);
         }
+
+        function showModal(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerText = msg; document.getElementById('loginModal').classList.add('active'); playTone(150, 'sawtooth', 0.3); }
+        function closeModal() { document.getElementById('loginModal').classList.remove('active'); }
+        function shakeScreen() { const c = document.getElementById('mainContainer'); c.classList.add('shake-element'); setTimeout(()=>c.classList.remove('shake-element'),500); }
 
         function checkVPN() {
             const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -67,100 +112,85 @@
             }
         }
 
-        function updateLiveCounter() {
-            const base = 300;
-            const variation = Math.floor(Math.random() * 50);
-            document.getElementById('liveCounter').innerText = `المتصلين: ${base + variation}`;
-        }
-        setInterval(updateLiveCounter, 3000);
+        // محاكاة Ping
+        setInterval(() => {
+            document.getElementById('pingVal').innerText = Math.floor(Math.random() * 60 + 20) + 'ms';
+        }, 2000);
 
-        function playIntro() {
-            document.body.style.display = 'grid'; 
+        // نظام الإقلاع (Boot Sequence)
+        async function runBootSequence() {
+            document.body.style.display = 'block';
+            const logs = [
+                "Initializing Kernel...", "Loading Modules: NET, CRYPTO, FS...", 
+                "Connecting to Satellite Relay...", "Bypassing Regional Firewalls...",
+                "Fetching Encryption Keys...", "Verifying User Agent...", 
+                "Handshake Successful [200 OK]", "Starting Graphical Interface..."
+            ];
             
-            // 1. الانتظار قليلاً لظهور الانترو
+            const term = document.getElementById('terminalLogs');
+            
+            for (let i = 0; i < logs.length; i++) {
+                const p = document.createElement('div');
+                p.className = 'log-line';
+                p.innerHTML = `> ${logs[i]}`;
+                term.appendChild(p);
+                playTone(800, 'sine', 0.05); // صوت كتابة
+                await new Promise(r => setTimeout(r, Math.random() * 300 + 100));
+            }
+
             setTimeout(() => {
-                const introScreen = document.getElementById('introScreen');
-                const introText = document.getElementById('introText');
-                const movingLogo = document.getElementById('movingLogo');
-                const targetLogo = document.getElementById('targetLogo');
-                const mainContainer = document.getElementById('mainContainer');
-
-                // إخفاء النص فقط
-                introText.style.opacity = 0;
-
-                // 2. إظهار الكونتينر (لكن اللوجو بداخله مخفي opacity:0)
-                // والهدف هو حساب مكانه
-                mainContainer.style.display = 'block';
-
-                // جعل خلفية الانترو شفافة لرؤية الكونتينر تحتها
-                introScreen.classList.add('bg-transparent');
-
-                // 3. حساب الإحداثيات للانتقال (FLIP Animation)
-                // نستخدم setTimeout صغير لضمان أن الكونتينر ظهر وتم حساب ابعاده
+                document.getElementById('bootScreen').style.transition = 'opacity 0.5s';
+                document.getElementById('bootScreen').style.opacity = '0';
+                setTimeout(() => document.getElementById('bootScreen').remove(), 500);
+                
+                const container = document.getElementById('mainContainer');
+                container.style.display = 'block';
                 setTimeout(() => {
-                    const startRect = movingLogo.getBoundingClientRect();
-                    const endRect = targetLogo.getBoundingClientRect();
-
-                    const deltaX = endRect.left - startRect.left;
-                    const deltaY = endRect.top - startRect.top;
-                    const scale = endRect.width / startRect.width;
-
-                    // تطبيق الحركة
-                    movingLogo.style.transition = 'transform 1s cubic-bezier(0.68, -0.55, 0.27, 1.55)'; // تأثير مطاطي جميل
-                    movingLogo.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
-
-                    // 4. عند انتهاء الحركة، نبدل اللوجوهات
-                    setTimeout(() => {
-                        movingLogo.style.opacity = 0; // اخفاء اللوجو المتحرك
-                        targetLogo.style.opacity = 1; // إظهار اللوجو الثابت
-                        
-                        // تفعيل انميشن الطفو على اللوجو الثابت الآن
-                        targetLogo.classList.add('floating-logo');
-
-                        // تنظيف الانترو
-                        setTimeout(() => { introScreen.remove(); }, 500);
-                    }, 1000); // نفس مدة الـ transition
-
-                }, 100);
-
-            }, 2500); // مدة عرض اللوجو في المنتصف قبل الحركة
+                    container.classList.add('ui-visible');
+                    document.getElementById('targetLogo').style.opacity = 1;
+                    playTone(600, 'sine', 0.5); // صوت بدء النظام
+                }, 50);
+            }, 500);
         }
 
         async function checkBan() {
-            updateLiveCounter();
             checkVPN();
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
                 const { data: banned } = await _supabase.from('banned_ips').select('*').eq('ip', data.ip);
                 if (banned && banned.length > 0) { 
-                    document.body.innerHTML = `<h1 style="color:red; text-align:center; margin-top:20%;">🚫 BLOCKED</h1>`; 
+                    document.body.innerHTML = `<h1 style="color:red; text-align:center; margin-top:20%; font-family:'Fira Code';">🚫 CONNECTION REFUSED<br><span style="font-size:1rem;">IP BLACKLISTED</span></h1>`; 
                     document.body.style.display='block'; 
+                } else { 
+                    runBootSequence(); 
                 }
-                else { playIntro(); }
-            } catch (e) { playIntro(); }
+            } catch (e) { runBootSequence(); }
         }
         window.onload = checkBan;
 
         async function runLogin() {
             const codeInput = document.getElementById('accessCode').value.trim();
             const btn = document.getElementById('loginBtn');
-            if (!codeInput) { showModal("تنبيه", "أدخل الكود أولاً."); shakeScreen(); return; }
+            if (!codeInput) { showModal("INPUT ERROR", "Please enter the access key."); shakeScreen(); return; }
             
-            btn.innerText = "جاري التحقق..."; btn.disabled = true;
+            btn.innerText = "AUTHENTICATING..."; btn.disabled = true;
 
-            try {
-                const { data } = await _supabase.from('active_codes').select('*').eq('code', codeInput).single();
-                if (!data) {
-                    showModal("❌ خطأ", "الكود غير صحيح!");
-                    shakeScreen();
-                } else if (data.is_active === true) {
-                    localStorage.setItem('isLoggedIn', 'true'); window.location.href = 'app';
-                } else {
-                    showModal("جاري التفعيل", "جاري مراجعة بياناتك وإضافة حسابك في السيرفر يرجى الانتظار");
-                }
-            } catch (err) { showModal("⚠️ خطأ", "فشل الاتصال."); shakeScreen(); } 
-            finally { btn.innerText = "بدء الاتصال"; btn.disabled = false; }
+            // محاكاة تأخير التحقق لزيادة الواقعية
+            setTimeout(async () => {
+                try {
+                    const { data } = await _supabase.from('active_codes').select('*').eq('code', codeInput).single();
+                    if (!data) {
+                        showModal("ACCESS DENIED", "Invalid Access Key.");
+                        shakeScreen();
+                    } else if (data.is_active === true) {
+                        localStorage.setItem('isLoggedIn', 'true'); window.location.href = 'app.html';
+                    } else {
+                        showModal("PENDING APPROVAL", "Your key is currently under review by the administrator.");
+                    }
+                } catch (err) { showModal("NETWORK ERROR", "Connection to server failed."); shakeScreen(); } 
+                finally { btn.innerText = "INITIALIZE CONNECTION"; btn.disabled = false; }
+            }, 1500);
         }
         document.getElementById('loginBtn').addEventListener('click', runLogin);
     </script>
