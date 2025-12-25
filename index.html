@@ -6,25 +6,100 @@
     <title>بوابة الدخول الآمنة | V9</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* تنسيقات إضافية للعربية لجعل التيرمينال يدعم اليمين لليسار */
-        .boot-screen { font-family: 'Courier New', monospace; direction: rtl; text-align: right; }
-        .ticker-wrap { font-family: 'Cairo', sans-serif; }
+        /* =========================================
+           تنسيقات الانترو الجديد (Crash Theme Intro)
+        ========================================= */
+        .intro-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-in-out;
+        }
+        
+        /* اللوجو في الانترو */
+        .intro-logo-box img {
+            width: 120px;
+            filter: drop-shadow(0 0 20px var(--hacker-green));
+            animation: floatLogo 3s ease-in-out infinite;
+        }
+        @keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* عداد المضاعف (Multiplier) */
+        .crash-counter-box {
+            margin-top: 30px;
+            text-align: center;
+            position: relative;
+        }
+        .crash-multiplier {
+            font-family: 'Fira Code', monospace;
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--hacker-green);
+            text-shadow: 0 0 30px var(--hacker-green);
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+        /* حالة التحطم (Crash State) */
+        .crash-multiplier.crashed {
+            color: var(--danger-red);
+            text-shadow: 0 0 50px var(--danger-red), 0 0 20px #fff;
+            animation: crashShake 0.5s infinite;
+        }
+        @keyframes crashShake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+
+        .intro-status-text {
+            font-family: 'Cairo', sans-serif;
+            color: #888;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        /* رسم بياني خلفي بسيط */
+        .graph-line-container {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 200px;
+            z-index: -1; opacity: 0.3; pointer-events: none; overflow: hidden;
+        }
+        .rising-graph-line {
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--hacker-green));
+            clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+            transition: clip-path 3.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .intro-overlay.start-rise .rising-graph-line {
+             clip-path: polygon(0 100%, 100% 20%, 100% 100%, 0 100%);
+        }
+
+        /* =========================================
+           تعديلات الحاوية الرئيسية
+        ========================================= */
+        /* إخفاء الشاشة الرئيسية حتى انتهاء الانترو */
+        #mainContainer { opacity: 0; transition: opacity 0.8s ease-in; }
+        #mainContainer.fade-in { opacity: 1; }
+
     </style>
 </head>
-<body style="display:none;" id="bodyContent">
+<body style="background:#000;">
 
-    <div id="bootScreen" class="boot-screen">
-        <div id="terminalLogs"></div>
-    </div>
+    <div id="crashIntroOverlay" class="intro-overlay">
+        <div class="intro-logo-box">
+            <img src="11zon_cropped.png" alt="System Logo">
+        </div>
+        
+        <div class="crash-counter-box">
+            <div class="crash-multiplier" id="introMultiplier">1.00x</div>
+        </div>
 
-    <div class="ticker-wrap">
-        <div class="ticker-move">
-            <span style="color:var(--hacker-green);">[نظام]</span> تم اكتشاف ثغرة جديدة في خوادم 1xBet (Port 8080) ... 
-            <span style="color:gold;">[تحديث]</span> إصدار السكربت V9.5 متاح الآن مع حماية ضد الحظر ... 
-            <span style="color:var(--danger-red);">[تنبيه]</span> ضغط عالي على السيرفر رقم 4 ... يرجى استخدام VPN في حالة بطء الاتصال ...
+        <div class="intro-status-text" id="introStatus">جاري بدء تشغيل الأنظمة...</div>
+
+        <div class="graph-line-container">
+            <div class="rising-graph-line"></div>
         </div>
     </div>
-
     <div id="loginModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title" id="modalTitle">[ تنبيه النظام ]</div>
@@ -34,12 +109,12 @@
     </div>
 
     <div class="container" id="mainContainer" style="display: none;">
-        <img src="11zon_cropped.png" alt="App Logo" class="pro-logo" id="targetLogo" style="opacity: 0;">
+        <img src="11zon_cropped.png" alt="App Logo" class="pro-logo" id="targetLogo">
         
         <div style="text-align: center; margin-bottom: 20px;">
             <h2 style="margin: 0;">بوابة الدخول</h2>
             <div style="font-family: 'Fira Code'; font-size: 0.7rem; color: #888; margin-top: 5px;">
-                التشفير: AES-256 | البروكسي: <span style="color:var(--hacker-green)">متصل</span>
+                نظام تحليل النتائج V9 | الحالة: <span style="color:var(--hacker-green)">جاهز</span>
             </div>
         </div>
         
@@ -48,12 +123,12 @@
                    style="text-align: center; font-weight: bold; font-family:'Fira Code'; letter-spacing:2px; text-transform:uppercase;">
         </div>
 
-        <button id="loginBtn">بدء الاتصال بالسيرفر</button>
+        <button id="loginBtn">دخول للنظام</button>
         <button class="secondary-btn" onclick="window.location.href='create.html'" style="width:100%;">طلب مفتاح جديد (تسجيل)</button>
         
         <div class="status-bar">
-            <div class="status-item"><div class="blink-dot"></div> الحالة: متصل</div>
-            <div class="status-item">سرعة الاستجابة: <span id="pingVal">45ms</span></div>
+            <div class="status-item"><div class="blink-dot"></div> السيرفر: متصل</div>
+            <div class="status-item">Ping: <span id="pingVal">45ms</span></div>
         </div>
 
         <p id="vpnWarning" style="color: var(--warning-orange); font-size: 0.8rem; margin-top: 10px; display: none; border: 1px dashed var(--warning-orange); padding: 5px;">
@@ -68,14 +143,30 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playTone(freq, type='square', len=0.1) {
+        
+        // دالة تشغيل أصوات (للانترو والتنبيهات)
+        function playTone(freq, type='sine', len=0.1, vol=0.1) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
             osc.start(); osc.stop(audioCtx.currentTime + len);
+        }
+
+        // دالة تشغيل صوت متصاعد (للصاروخ)
+        function playRisingTone(duration) {
+             if (audioCtx.state === 'suspended') audioCtx.resume();
+             const osc = audioCtx.createOscillator();
+             const gain = audioCtx.createGain();
+             osc.connect(gain); gain.connect(audioCtx.destination);
+             osc.type = 'triangle';
+             osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+             osc.frequency.exponentialRampToValueAtTime(1500, audioCtx.currentTime + duration);
+             gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+             gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + duration);
+             osc.start(); osc.stop(audioCtx.currentTime + duration + 0.1);
         }
 
         function showModal(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerText = msg; document.getElementById('loginModal').classList.add('active'); playTone(150, 'sawtooth', 0.3); }
@@ -93,66 +184,89 @@
             document.getElementById('pingVal').innerText = Math.floor(Math.random() * 60 + 20) + 'ms';
         }, 2000);
 
-        async function runBootSequence() {
-            document.body.style.display = 'block';
-            // === تم تعريب أوامر الإقلاع هنا ===
-            const logs = [
-                "جاري تهيئة النظام (Kernel)...", 
-                "تحميل وحدات الشبكة والتشفير...", 
-                "جاري الاتصال بالسيرفر الرئيسي...", 
-                "تجاوز جدار الحماية (Firewall)...",
-                "جلب مفاتيح فك التشفير...", 
-                "التحقق من هوية الجهاز...", 
-                "تم الاتصال بنجاح [200 OK]", 
-                "تشغيل واجهة المستخدم الرسومية..."
-            ];
-            
-            const term = document.getElementById('terminalLogs');
-            
-            for (let i = 0; i < logs.length; i++) {
-                const p = document.createElement('div');
-                p.className = 'log-line';
-                p.innerHTML = `> ${logs[i]}`;
-                term.appendChild(p);
-                playTone(800, 'sine', 0.05);
-                await new Promise(r => setTimeout(r, Math.random() * 300 + 100));
-            }
+        // ==================================================
+        // === دالة الانترو الجديدة (Crash Intro Sequence) ===
+        // ==================================================
+        async function runCrashIntroSequence() {
+            const introOverlay = document.getElementById('crashIntroOverlay');
+            const multiplierEl = document.getElementById('introMultiplier');
+            const statusEl = document.getElementById('introStatus');
+            const mainContainer = document.getElementById('mainContainer');
 
-            setTimeout(() => {
-                document.getElementById('bootScreen').style.transition = 'opacity 0.5s';
-                document.getElementById('bootScreen').style.opacity = '0';
-                setTimeout(() => document.getElementById('bootScreen').remove(), 500);
+            // تأخير بسيط قبل البدء
+            await new Promise(r => setTimeout(r, 500));
+            
+            // بدء حركة الرسم البياني
+            introOverlay.classList.add('start-rise');
+            playRisingTone(3.5); // تشغيل صوت الصعود لمدة 3.5 ثانية
+
+            let currentMulti = 1.00;
+            let speed = 50;
+            
+            // حلقة زيادة العداد
+            const riseInterval = setInterval(() => {
+                // معادلة لزيادة السرعة كلما ارتفع الرقم
+                currentMulti += (currentMulti * 0.015) + 0.01; 
+                multiplierEl.innerText = currentMulti.toFixed(2) + "x";
+
+                // تغيير النصوص أثناء الصعود
+                if(currentMulti > 1.5 && currentMulti < 3) statusEl.innerText = "جاري الاتصال بالسيرفرات...";
+                if(currentMulti > 3 && currentMulti < 6) statusEl.innerText = "مزامنة البيانات (Syncing)...";
+                if(currentMulti > 6) statusEl.innerText = "تهيئة واجهة المستخدم...";
+
+                // تسريع العداد
+                if(currentMulti > 2.0) speed = 30;
+                if(currentMulti > 5.0) speed = 20;
+            }, speed);
+
+
+            // لحظة الـ CRASH (بعد حوالي 3.5 ثانية)
+            setTimeout(async () => {
+                clearInterval(riseInterval); // إيقاف العداد
                 
-                const container = document.getElementById('mainContainer');
-                container.style.display = 'block';
+                // تأثير التحطم
+                multiplierEl.classList.add('crashed');
+                multiplierEl.innerText = "CRASHED!";
+                statusEl.innerText = "تم الوصول للنظام بنجاح.";
+                statusEl.style.color = "var(--danger-red)";
+                
+                // صوت التحطم
+                playTone(100, 'sawtooth', 0.8, 0.3); 
+
+                // الانتظار قليلاً لرؤية التحطم
+                await new Promise(r => setTimeout(r, 1200));
+
+                // إخفاء الانترو وإظهار صفحة الدخول
+                introOverlay.style.opacity = '0';
+                mainContainer.style.display = 'block';
+                
                 setTimeout(() => {
-                    container.classList.add('ui-visible');
-                    document.getElementById('targetLogo').style.opacity = 1;
-                    playTone(600, 'sine', 0.5);
-                }, 50);
-            }, 500);
+                    introOverlay.remove(); // حذف الانترو من الصفحة
+                    mainContainer.classList.add('fade-in'); // إظهار ناعم لصفحة الدخول
+                    playTone(600, 'sine', 0.2, 0.1); // صوت ترحيب خفيف
+                }, 800);
+
+            }, 3500); // مدة الصعود قبل التحطم
         }
 
+        // التحقق من الحظر ثم تشغيل الانترو
         async function checkBan() {
             checkVPN();
             try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                const { data: banned } = await _supabase.from('banned_ips').select('*').eq('ip', data.ip);
-                if (banned && banned.length > 0) { 
-                    document.body.innerHTML = `<h1 style="color:red; text-align:center; margin-top:20%; font-family:'Fira Code';">🚫 تم رفض الاتصال<br><span style="font-size:1rem;">جهازك محظور من السيرفر</span></h1>`; 
-                    document.body.style.display='block'; 
-                } else { 
-                    runBootSequence(); 
-                }
-            } catch (e) { runBootSequence(); }
+                // التحقق السريع من الحظر (يمكنك تفعيله إذا أردت، حالياً سيتخطاه للانترو مباشرة)
+                // const res = await fetch('https://api.ipify.org?format=json');
+                // ... منطق التحقق ...
+                 runCrashIntroSequence(); // تشغيل الانترو الجديد
+            } catch (e) { 
+                runCrashIntroSequence(); 
+            }
         }
         window.onload = checkBan;
 
         async function runLogin() {
             const codeInput = document.getElementById('accessCode').value.trim();
             const btn = document.getElementById('loginBtn');
-            if (!codeInput) { showModal("خطأ إدخال", "يرجى كتابة كود الوصول أولاً."); shakeScreen(); return; }
+            if (!codeInput) { showModal("تنبيه", "يرجى إدخال الكود أولاً."); shakeScreen(); return; }
             
             btn.innerText = "جاري التحقق..."; btn.disabled = true;
 
@@ -160,16 +274,16 @@
                 try {
                     const { data } = await _supabase.from('active_codes').select('*').eq('code', codeInput).single();
                     if (!data) {
-                        showModal("فشل الدخول", "مفتاح الوصول غير صحيح أو منتهي.");
+                        showModal("فشل الدخول", "الكود غير صحيح أو غير موجود.");
                         shakeScreen();
                     } else if (data.is_active === true) {
                         localStorage.setItem('isLoggedIn', 'true'); window.location.href = 'app.html';
                     } else {
-                        showModal("قيد الانتظار", "مفتاحك قيد المراجعة يرجى الانتظار.");
+                        showModal("قيد الانتظار", "جاري المراجعه يرجى الانتظار.");
                     }
-                } catch (err) { showModal("خطأ اتصال", "فشل الاتصال بقاعدة البيانات."); shakeScreen(); } 
-                finally { btn.innerText = "بدء الاتصال بالسيرفر"; btn.disabled = false; }
-            }, 1500);
+                } catch (err) { showModal("خطأ اتصال", "تعذر الاتصال بقاعدة البيانات."); shakeScreen(); } 
+                finally { btn.innerText = "دخول للنظام"; btn.disabled = false; }
+            }, 1000);
         }
         document.getElementById('loginBtn').addEventListener('click', runLogin);
     </script>
