@@ -144,87 +144,62 @@
         let start = Date.now();
         let scrambleInterval = null;
 
-        // متغير لتخزين الإعدادات (الكاش) لمنع الاتصال بالسيرفر في كل جولة
-        let cachedSettings = null;
-
-        // دالة لجلب الإعدادات في الخلفية وتحديث الكاش
-        async function fetchSettingsInBackground() {
-            try {
-                const { data, error } = await _supabase.from('settings').select('*').eq('id', 1).single();
-                if (data) {
-                    cachedSettings = data;
-                    // console.log("Settings updated in background"); // للتدقيق فقط
-                }
-            } catch (err) {
-                console.error("Background fetch error", err);
-            }
-        }
-
-        // تشغيل جلب الإعدادات لأول مرة ثم كل 5 ثواني
-        fetchSettingsInBackground();
-        setInterval(fetchSettingsInBackground, 5000);
-
-
         // دالة توليد الأرقام الخاصة بـ Crash
-        function gen() {
-            // 1. بدء تأثير "الأرقام السريعة" (Matrix Effect)
+        async function gen() {
+            // 1. بدء تأثير "الأرقام السريعة" (Matrix Effect) بدلاً من النص الثابت
+            // هذا يلغي الشعور باللاج لأن الأرقام تتحرك بسرعة أثناء التحميل
             if (scrambleInterval) clearInterval(scrambleInterval);
-            display.style.color = "#aaa"; 
+            display.style.color = "#aaa"; // لون باهت أثناء الحساب
             display.style.textShadow = "none";
             
             scrambleInterval = setInterval(() => {
+                // توليد أرقام عشوائية سريعة لإيهام المستخدم بالمعالجة
                 display.innerText = (Math.random() * 10 + 1).toFixed(2) + "x";
-            }, 50);
+            }, 50); // كل 50 مللي ثانية
 
             let finalNumber = "1.00";
 
-            // 2. استخدام البيانات المخزنة محلياً (بدون await وبدون تأخير)
-            if (cachedSettings && cachedSettings.mode === 'manual' && cachedSettings.manual_list) {
-                // === الوضع اليدوي ===
-                const numbersArr = cachedSettings.manual_list
-                    .split(/[\s,]+/)
-                    .map(s => s.trim())
-                    .filter(s => s !== "");
+            try {
+                // جلب الإعدادات من الأدمن
+                const { data, error } = await _supabase.from('settings').select('*').eq('id', 1).single();
+                
+                if (data && data.mode === 'manual' && data.manual_list) {
+                    // === الوضع اليدوي ===
+                    const numbersArr = data.manual_list
+                        .split(/[\s,]+/)
+                        .map(s => s.trim())
+                        .filter(s => s !== "");
 
-                if(numbersArr.length > 0) {
-                    const timeIndex = Math.floor(Date.now() / INTERVAL);
-                    const arrIndex = timeIndex % numbersArr.length;
-                    finalNumber = numbersArr[arrIndex];
+                    if(numbersArr.length > 0) {
+                        const timeIndex = Math.floor(Date.now() / INTERVAL);
+                        const arrIndex = timeIndex % numbersArr.length;
+                        finalNumber = numbersArr[arrIndex];
+                    } else {
+                        finalNumber = (Math.random() * 10 + 1).toFixed(2);
+                    }
                 } else {
-                    finalNumber = (Math.random() * 10 + 1).toFixed(2);
+                    // === الوضع العشوائي للكراش ===
+                    const r = Math.random();
+                    if(r < 0.3) finalNumber = (1.00 + Math.random() * 0.50).toFixed(2);
+                    else if (r < 0.7) finalNumber = (1.50 + Math.random() * 2.00).toFixed(2);
+                    else finalNumber = (3.50 + Math.random() * 10.00).toFixed(2);
                 }
-            } else {
-                // === الوضع العشوائي للكراش ===
-                const r = Math.random();
-                if(r < 0.3) finalNumber = (1.00 + Math.random() * 0.50).toFixed(2);
-                else if (r < 0.7) finalNumber = (1.50 + Math.random() * 2.00).toFixed(2);
-                else finalNumber = (3.50 + Math.random() * 10.00).toFixed(2);
+
+            } catch (err) {
+                console.error("Fallback active");
+                finalNumber = (Math.random() * 5 + 1).toFixed(2);
             }
 
-            // عرض الرقم النهائي
+            // عرض الرقم النهائي بعد تأخير بسيط لإعطاء وقت لتأثير الأرقام
             setTimeout(() => { 
-                clearInterval(scrambleInterval); 
+                clearInterval(scrambleInterval); // إيقاف العشوائية
                 
                 display.style.textShadow = "0 0 20px rgba(255, 255, 255, 0.8)";
                 display.style.color = "#fff";
                 display.innerText = finalNumber + "x";
-                
-                // إضافة حركة بسيطة للنقاط (History Dots)
-                updateDots();
-                
-            }, 500); 
+            }, 500); // يستمر تأثير التشويش لمدة نصف ثانية
 
             start = Date.now();
-        }
-
-        function updateDots() {
-            const dots = document.querySelectorAll('.dot');
-            dots.forEach(d => d.classList.remove('active'));
-            // تفعيل نقاط عشوائية لمحاكاة السجل
-            const activeCount = Math.floor(Math.random() * 3) + 2;
-            for(let i=0; i<activeCount; i++) {
-                if(dots[i]) dots[i].classList.add('active');
-            }
         }
 
         function loop() {
