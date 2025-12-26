@@ -37,9 +37,9 @@
         .stat-icon { position: absolute; left: 10px; bottom: 10px; font-size: 3rem; opacity: 0.1; }
 
         /* جداول البيانات */
-        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
-        .data-table th { text-align: right; color: #aaa; padding: 10px; border-bottom: 1px solid #333; }
-        .data-table td { padding: 12px 10px; border-bottom: 1px solid #222; color: #ddd; vertical-align: middle; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; table-layout: fixed; }
+        .data-table th { text-align: right; color: #aaa; padding: 10px; border-bottom: 1px solid #333; white-space: nowrap; }
+        .data-table td { padding: 12px 10px; border-bottom: 1px solid #222; color: #ddd; vertical-align: middle; word-wrap: break-word; }
         .data-table tr:hover { background: rgba(255,255,255,0.02); }
         .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
         .status-pending { background: rgba(255, 165, 0, 0.2); color: orange; border: 1px solid orange; }
@@ -55,8 +55,15 @@
         
         /* شريط علوي */
         .admin-navbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333; }
-        .refresh-btn { background: transparent; border: 1px solid #555; width: auto; padding: 8px 15px; margin: 0; font-size: 0.9rem; border-radius: 6px; }
-        .refresh-btn:hover { border-color: #fff; color: #fff; transform: none; box-shadow: none; }
+        .nav-actions { display: flex; gap: 10px; }
+        .refresh-btn { background: transparent; border: 1px solid #555; width: auto; padding: 8px 15px; margin: 0; font-size: 0.9rem; border-radius: 6px; cursor: pointer; color: #ccc; }
+        .refresh-btn:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); }
+        .logout-btn { border-color: var(--danger-red); color: var(--danger-red); }
+        .logout-btn:hover { background: var(--danger-red); color: #fff; }
+
+        /* Pagination Controls */
+        .pagination-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #333; }
+        .page-info { color: #888; font-size: 0.9rem; font-family: 'Fira Code'; }
 
     </style>
 </head>
@@ -99,9 +106,12 @@
             <div class="admin-navbar">
                 <div>
                     <h2 style="margin: 0; font-size: 1.5rem;">غرفة التحكم والعمليات</h2>
-                    <span style="font-size: 0.8rem; color: #666; font-family: 'Fira Code';">ROOT_ACCESS: GRANTED | V.9.5</span>
+                    <span style="font-size: 0.8rem; color: #666; font-family: 'Fira Code';">ROOT_ACCESS: GRANTED | V.9.6</span>
                 </div>
-                <button class="refresh-btn" onclick="loadData()">تحديث البيانات ↻</button>
+                <div class="nav-actions">
+                    <button class="refresh-btn" onclick="loadData()">تحديث ↻</button>
+                    <button class="refresh-btn logout-btn" onclick="adminLogout()">خروج 🚪</button>
+                </div>
             </div>
 
             <div class="stats-row">
@@ -165,19 +175,25 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>التاريخ</th>
-                                <th>بيانات المستخدم</th>
-                                <th>الجهاز / IP</th>
-                                <th>الكود</th>
-                                <th>الإثباتات</th>
-                                <th>الحالة</th>
-                                <th>إجراءات</th>
+                                <th width="15%">التاريخ</th>
+                                <th width="25%">بيانات المستخدم</th>
+                                <th width="15%">IP</th>
+                                <th width="15%">الكود</th>
+                                <th width="10%">الإثباتات</th>
+                                <th width="10%">الحالة</th>
+                                <th width="10%">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="requestsList">
                             <tr><td colspan="7" style="text-align: center;">جاري تحميل البيانات...</td></tr>
                         </tbody>
                     </table>
+                </div>
+
+                <div class="pagination-controls">
+                    <button class="mini-btn" onclick="prevPage()" id="prevBtn">السابق</button>
+                    <span class="page-info">صفحة <span id="currPageSpan">1</span></span>
+                    <button class="mini-btn" onclick="nextPage()" id="nextBtn">التالي</button>
                 </div>
             </div>
 
@@ -204,7 +220,13 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) { if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); if (type === 'click') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.05); } }
         function typeWriter(text, elementId) { let i = 0; const target = document.getElementById(elementId); target.innerHTML = ""; function type() { if (i < text.length) { target.innerHTML += text.charAt(i); i++; setTimeout(type, 50); } } type(); }
-        window.onload = () => typeWriter("بوابة المسؤول (ADMIN GATE)", "typewriterTitle");
+        window.onload = () => {
+            if(sessionStorage.getItem('adminLogged')) {
+                showAdminPanel();
+            } else {
+                typeWriter("بوابة المسؤول (ADMIN GATE)", "typewriterTitle");
+            }
+        };
 
         function showAlert(title, msg) { document.getElementById('alertTitle').innerText = title; document.getElementById('alertMsg').innerText = msg; document.getElementById('alertModal').classList.add('active'); }
         function closeAlert() { document.getElementById('alertModal').classList.remove('active'); }
@@ -218,7 +240,11 @@
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // متغيرات تقسيم الصفحات
+        let currentPage = 0;
+        const pageSize = 10;
         let allRequests = [];
+        let totalRequests = 0;
 
         function escapeHtml(text) {
             if (!text) return "";
@@ -228,15 +254,25 @@
         // تسجيل الدخول
         document.getElementById('authBtn').addEventListener('click', () => {
             const e = document.getElementById('adminEmail').value; const p = document.getElementById('adminPass').value;
-            // يمكنك تغيير بيانات الدخول هنا
+            // تحذير: يفضل تغيير هذا التحقق ليتم عبر قاعدة البيانات
             if(e === "mmx" && p === "mmx023123") { 
-                document.getElementById('adminLogin').classList.add('hidden'); 
-                document.getElementById('adminPanel').classList.remove('hidden'); 
-                loadData(); 
-                loadAuditLog(); 
-                loadSignalSettings(); 
+                sessionStorage.setItem('adminLogged', 'true');
+                showAdminPanel();
             } else { showAlert("❌ خطأ أمني", "بيانات الاعتماد غير صحيحة!"); }
         });
+
+        function showAdminPanel() {
+            document.getElementById('adminLogin').classList.add('hidden'); 
+            document.getElementById('adminPanel').classList.remove('hidden'); 
+            loadData(); 
+            loadAuditLog(); 
+            loadSignalSettings(); 
+        }
+
+        function adminLogout() {
+            sessionStorage.removeItem('adminLogged');
+            location.reload();
+        }
 
         async function logAction(action) {
             const time = new Date().toISOString();
@@ -325,13 +361,44 @@
             if(data) logBox.innerHTML = data.map(l => `<div style="margin-bottom:2px; border-bottom:1px solid #222; padding:2px;">${l.log}</div>`).join('');
         }
 
+        // --- نظام تحميل البيانات مع Pagination ---
         async function loadData() {
-            const tbody = document.getElementById('requestsList'); tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">جاري التحديث...</td></tr>';
+            const tbody = document.getElementById('requestsList'); 
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">جاري التحديث...</td></tr>';
             
-            const { data: requests } = await _supabase.from('requests').select('*').order('created_at', {ascending:false});
-            const { data: bannedList } = await _supabase.from('banned_ips').select('*');
+            // جلب عدد الطلبات الكلي
+            const { count } = await _supabase.from('requests').select('*', { count: 'exact', head: true });
+            totalRequests = count || 0;
+            document.getElementById('totalCount').innerText = totalRequests;
 
-            // تحديث قائمة المحظورين
+            // حساب المدى للصفحة الحالية
+            const from = currentPage * pageSize;
+            const to = from + pageSize - 1;
+
+            const { data: requests } = await _supabase
+                .from('requests')
+                .select('*')
+                .order('created_at', {ascending:false})
+                .range(from, to);
+
+            const { data: bannedList } = await _supabase.from('banned_ips').select('*');
+            updateBannedList(bannedList);
+
+            if(requests) {
+                allRequests = requests;
+                
+                // حساب الأرباح (نحتاج لجلب كل الأرباح لحساب الإجمالي بدقة - يمكن تحسينه لاحقاً)
+                const { data: allProfits } = await _supabase.from('requests').select('profit');
+                let totalMoney = 0;
+                if(allProfits) allProfits.forEach(r => { if(r.profit) totalMoney += parseFloat(r.profit); });
+                document.getElementById('totalMoney').innerText = "$" + totalMoney;
+                
+                renderTable();
+                updatePaginationControls();
+            } else { tbody.innerHTML = '<tr><td colspan="7">لا توجد طلبات</td></tr>'; }
+        }
+
+        function updateBannedList(bannedList) {
             const bannedContainer = document.getElementById('bannedListContainer');
             if(bannedList && bannedList.length > 0) {
                 bannedContainer.innerHTML = bannedList.map(b => `
@@ -345,15 +412,6 @@
                 bannedContainer.innerHTML = '<p style="text-align:center; color:#555;">لا يوجد محظورين</p>';
                 document.getElementById('bannedCount').innerText = 0;
             }
-
-            if(requests) {
-                allRequests = requests;
-                let totalMoney = 0;
-                requests.forEach(r => { if(r.profit) totalMoney += parseFloat(r.profit); });
-                document.getElementById('totalCount').innerText = requests.length;
-                document.getElementById('totalMoney').innerText = "$" + totalMoney;
-                renderTable();
-            } else { tbody.innerHTML = '<tr><td colspan="7">لا توجد طلبات</td></tr>'; }
         }
 
         function renderTable() {
@@ -361,39 +419,69 @@
             const search = document.getElementById('searchInput').value.toLowerCase();
             tbody.innerHTML = '';
 
+            // البحث يتم محلياً في الصفحة الحالية (يمكن تحسينه ليكون بحث في السيرفر)
             const filtered = allRequests.filter(r => 
                 (r.user_data && r.user_data.toLowerCase().includes(search)) || 
                 (r.generated_code && r.generated_code.toLowerCase().includes(search))
             );
 
+            if(filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد نتائج</td></tr>';
+                return;
+            }
+
             filtered.forEach(r => {
                 const ipMatch = r.user_data.match(/IP: ([\d\.]+)/);
                 const userIP = ipMatch ? ipMatch[1] : '???';
-                const d = new Date(r.created_at).toLocaleDateString('ar-EG');
+                const d = new Date(r.created_at).toLocaleDateString('ar-EG') + ' ' + new Date(r.created_at).toLocaleTimeString('ar-EG');
                 const isAct = r.status === 'active';
                 const statusBadge = isAct ? 
                     `<span class="status-badge status-active">نشط (+$${r.profit})</span>` : 
-                    `<span class="status-badge status-pending">قيد الانتظار</span>`;
+                    `<span class="status-badge status-pending">انتظار</span>`;
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${d}</td>
-                    <td><div style="max-height:60px; overflow-y:auto; font-size:0.8rem; color:#aaa;">${escapeHtml(r.user_data)}</div></td>
+                    <td style="direction:ltr; text-align:right;">${d}</td>
+                    <td><div style="max-height:60px; overflow-y:auto; font-size:0.8rem; color:#aaa; white-space:pre-wrap;">${escapeHtml(r.user_data)}</div></td>
                     <td style="font-family:'Fira Code'; font-size:0.8rem;">${userIP}</td>
                     <td style="font-family:'Fira Code'; color:var(--hacker-green); font-weight:bold;">${r.generated_code}</td>
                     <td>
-                        <a href="${r.reg_proof_url}" target="_blank" style="color:#fff; text-decoration:none;">📂 تسجيل</a> | 
-                        <a href="${r.dep_proof_url}" target="_blank" style="color:#fff; text-decoration:none;">💎 إيداع</a>
+                        <a href="${r.reg_proof_url}" target="_blank" style="color:#fff; text-decoration:none;">📂</a> | 
+                        <a href="${r.dep_proof_url}" target="_blank" style="color:#fff; text-decoration:none;">💎</a>
                     </td>
                     <td>${statusBadge}</td>
                     <td>
-                        ${!isAct ? `<button class="mini-btn btn-green" onclick="activateCode('${r.generated_code}', ${r.id})">✔ تفعيل</button>` : ''}
-                        <button class="mini-btn btn-red" onclick="banUser('${userIP}')">🚫 حظر</button>
+                        ${!isAct ? `<button class="mini-btn btn-green" onclick="activateCode('${r.generated_code}', ${r.id})">✔</button>` : ''}
+                        <button class="mini-btn btn-red" onclick="banUser('${userIP}')">🚫</button>
                         <button class="mini-btn" onclick="deleteRequest(${r.id})">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        function nextPage() {
+            if ((currentPage + 1) * pageSize < totalRequests) {
+                currentPage++;
+                loadData();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadData();
+            }
+        }
+
+        function updatePaginationControls() {
+            document.getElementById('currPageSpan').innerText = currentPage + 1;
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = (currentPage + 1) * pageSize >= totalRequests;
+            
+            // تنسيق الأزرار المعطلة
+            document.getElementById('prevBtn').style.opacity = currentPage === 0 ? '0.5' : '1';
+            document.getElementById('nextBtn').style.opacity = ((currentPage + 1) * pageSize >= totalRequests) ? '0.5' : '1';
         }
 
         function filterRequests() { renderTable(); }
