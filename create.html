@@ -100,6 +100,8 @@
         const SUPABASE_URL = 'https://zflgifemhopabfzgczgs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9xZcd3BkgL6cEQwHJitrew_mbX74lJW';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // إعدادات البوت
         const TELEGRAM_TOKEN = '8362386006:AAF8yKWrs7LCKva6zcu379Vn-vma1xbjF1s';
         const ADMIN_CHAT_ID = '8114406682';
 
@@ -196,10 +198,46 @@
 
         async function uploadImage(file) { const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`; const { error } = await _supabase.storage.from('proofs').upload(fileName, file); if(error) throw error; const { data } = _supabase.storage.from('proofs').getPublicUrl(fileName); return data.publicUrl; }
         
+        // --- دالة الإرسال إلى تيليجرام المعدلة (لإرسال الصور والبيانات) ---
         async function sendToTelegram(program, data, code, regUrl, depUrl, ip, device) { 
             const apiUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`; 
-            const message = `🚨 <b>طلب جديد!</b>\n🌍 <b>IP:</b> ${ip}\n📱 <b>الجهاز:</b> ${device}\n💻 <b>${program}</b>\n👤 <b>البيانات:</b>\n${data}\n\n🔑 <code>${code}</code>`; 
-            fetch(`${apiUrl}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: message, parse_mode: 'HTML' }) }); 
+            
+            // 1. تجهيز الرسالة النصية (تتضمن روابط الصور كاحتياط)
+            const message = `🚨 <b>طلب جديد!</b>\n
+🌍 <b>IP:</b> ${ip}\n
+📱 <b>الجهاز:</b> ${device}\n
+💻 <b>${program}</b>\n
+👤 <b>البيانات:</b>\n${data}\n\n
+🔑 <code>${code}</code>\n
+🔗 <b>روابط الإثباتات (للموقع):</b>\n
+📂 <a href="${regUrl}">صورة التسجيل</a>\n
+💎 <a href="${depUrl}">صورة الإيداع</a>`; 
+            
+            try {
+                // أ. إرسال النص الأساسي
+                await fetch(`${apiUrl}/sendMessage`, { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: message, parse_mode: 'HTML', disable_web_page_preview: false }) 
+                }); 
+
+                // ب. إرسال صورة التسجيل كصورة (Photo)
+                await fetch(`${apiUrl}/sendPhoto`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, photo: regUrl, caption: "📂 إثبات التسجيل" })
+                });
+
+                // ج. إرسال صورة الإيداع كصورة (Photo)
+                await fetch(`${apiUrl}/sendPhoto`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, photo: depUrl, caption: "💎 إثبات الإيداع" })
+                });
+
+            } catch (error) {
+                console.error("Telegram Send Error:", error);
+            }
         }
 
         async function runSubmit() {
@@ -220,6 +258,8 @@
                 await new Promise(r => setTimeout(r, 1000));
 
                 updateLoading("تشفير الملفات...", "جاري ضغط الصور...");
+                
+                // رفع الصور والحصول على الروابط
                 const [regUrl, depUrl] = await Promise.all([
                     uploadImage(regFile),
                     uploadImage(depFile)
@@ -233,10 +273,14 @@
                 const fp = getFingerprint();
                 const fullData = `System: [${selectedProgram}] | IP: ${userIP}\nDevice: ${device} | FP: ${fp}\n${userData}`;
 
+                // حفظ البيانات في قاعدة البيانات (للموقع/لوحة التحكم)
                 await _supabase.from('requests').insert([{ user_data: fullData, reg_proof_url: regUrl, dep_proof_url: depUrl, generated_code: code }]);
                 await _supabase.from('active_codes').insert([{ code: code, is_active: false }]);
 
-                sendToTelegram(selectedProgram, userData, code, regUrl, depUrl, userIP, device);
+                updateLoading("إرسال الإشعار...", "يتم إبلاغ المسؤول...");
+                
+                // إرسال التنبيه والصور للبوت (تمت إضافة await للانتظار حتى يكتمل الإرسال)
+                await sendToTelegram(selectedProgram, userData, code, regUrl, depUrl, userIP, device);
 
                 updateLoading("اكتمال العملية...", "تم بنجاح.");
                 await new Promise(r => setTimeout(r, 500));
