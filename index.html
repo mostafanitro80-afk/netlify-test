@@ -236,7 +236,7 @@
                     } else if (data.is_active === true) {
                         localStorage.setItem('isLoggedIn', 'true'); window.location.href = 'app.html';
                     } else {
-                        showModal("غير مفعل", "الكود صحيح ولكنه بانتظار تفعيل المشرف.");
+                           showModal("غير مفعل", "يرجئ التاكد من بيانات التسجيل و الايداع  .");
                     }
                 } catch (err) { showModal("خطأ شبكة", "تأكد من اتصالك بالإنترنت."); shakeScreen(); } 
                 finally { btn.innerText = "دخول للنظام"; btn.disabled = false; }
